@@ -1,7 +1,9 @@
+<div align="center">
+
 # aterosim
-Proyecto Final - IC-8048: Simulación de Sistemas Naturales - Tecnológico de Costa Rica
 
+![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
+![p5.js](https://img.shields.io/badge/p5.js-ED225D?style=for-the-badge&logo=p5dotjs&logoColor=white)
+[![Demo](https://img.shields.io/badge/Sitio_Web-Ver_Proyecto-4BC51D?style=for-the-badge&logo=googlechrome&logoColor=white)](https://TU-URL-AQUI.com)
 
-Prueba2 de readme.md
-
-hola
+</div>
