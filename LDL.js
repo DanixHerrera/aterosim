@@ -1,27 +1,21 @@
 
 class LDL extends Agent2D {
 
-    constructor(x, y) {
+    constructor(x, y, estado = "normal") {
         super(x, y, 1);
         this.vel = createVector(random(0.8, 1.4), 0);
         this.maxSpeed = 1.4;
         this.size = 7;
-        this.state = "normal";
+        this.state = estado;
     }
 
     update(velocidadFlujo) {
+        if (this.state === "oxidado") {
+            this.vel.set(0, 0);
+            this.acc.set(0, 0);
+            return;
+        }
         super.update(velocidadFlujo);
-
-        // this.vel.y = 0;
-
-        // if (this.arteria && this.pos.x > this.arteria.xInicio + this.arteria.ancho) {
-        //     this.pos.x = this.arteria.xInicio - this.r;
-
-        //     this.pos.y = random(
-        //         this.arteria.yLumenSuperior + this.r,
-        //         this.arteria.yLumenInferior - this.r
-        //     );
-        // }
     }
 
     display() {

@@ -76,10 +76,14 @@ class AgentSystem2D {
     }
 
     update() {
+        const ldls = this.getAgentsOfType(LDL);
         for (let i = this.agents.length - 1; i >= 0; i--) {
             const agent = this.agents[i];
-            agent.update(this.velocidadFlujo);
-
+            if (agent instanceof Macrofago) {
+                agent.update(this.velocidadFlujo, ldls);
+            } else {
+                agent.update(this.velocidadFlujo);
+            }
             if (agent.isDead()) {
                 this.agents.splice(i, 1);
             }
