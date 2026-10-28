@@ -26,6 +26,14 @@ class Agent2D {
         this.wanderRadius = 50;
         this.wanderNoiseT = random(10);
         this.wanderNoiseInc = 0.01;
+
+        this.size = this.r;
+        this.state = "normal";
+        this.arteria = null;
+        this.coefflujo = 0.05;
+        this.turbulencia = 0.03;
+        this.ruidoT = random(1000);
+
     }
     static createRandomVel(x, y, mass, velMag) {
         let agent = new Agent2D(x, y, mass);
@@ -38,7 +46,13 @@ class Agent2D {
         let agent = new Agent2D(random(width), random(height), mass);
         return agent;
     }
-    update() {
+    update(velocidadFlujo = 0) {
+
+        if (this.arteria) {
+            this.seguirFlujo(this.arteria, velocidadFlujo);
+        }
+
+
         this.lastPos.x = this.pos.x;
         this.lastPos.y = this.pos.y;
         this.vel.add(this.acc);
@@ -48,6 +62,13 @@ class Agent2D {
         this.borders();
         this.mass -= this.massLoss;
         this.r = sqrt(this.mass / PI) * Agent2D.drawRatio;
+
+        if (this.arteria) {
+            this.limitarAlLumen(this.arteria);
+            if (this.salioDerecha(this.arteria)) {
+                this.reaparecerIzquierda(this.arteria);
+            }
+        }
     }
     display() {
         stroke(this.c);
@@ -168,5 +189,43 @@ class Agent2D {
         if (distance > segment.r) {
             this.seek(target)
         }
+    }
+
+    limitesLumen (arteria) {
+        return {
+            top: arteria.yLumenSuperior + arteria.altoEndotelio + this.size,
+            bottom: arteria.yLumenInferior - arteria.altoEndotelio - this.size
+        };
+    }
+
+    seguirFlujo(arteria, velocidadFlujo) {
+        let radio = arteria.altoLumen / 2;
+        let d = (this.pos.y - arteria.y) / radio;
+        let desired = createVector(velocidadFlujo * (1 - d * d), 0);
+        let steering = p5.Vector.sub(desired, this.vel);
+        steering.mult(this.coefflujo);
+        this.applyGravity(steering);
+
+        let empuje = map(noise(this.ruidoT), 0, 1, -this.turbulencia, this.turbulencia);
+        this.ruidoT += 0.01;
+        this.applyGravity(createVector(0, empuje));
+
+    }
+
+    limitarAlLumen(arteria) {
+        let limites = this.limitesLumen(arteria);
+        if (this.pos.y < limites.top || this.pos.y > limites.bottom)
+            this.vel.y *= -this.borderDamp;
+        this.pos.y = constrain(this.pos.y, limites.top, limites.bottom);
+    }
+
+    salioDerecha(arteria) {
+        return this.pos.x > arteria.xInicio + arteria.ancho + this.size;
+    }
+
+    reaparecerIzquierda(arteria) {
+        let limites = this.limitesLumen(arteria);
+        this.pos.x = arteria.xInicio - this.size;
+        this.pos.y = random(limites.top, limites.bottom);
     }
 }

@@ -8,17 +8,17 @@ class Oxidante extends Agent2D {
         this.size = 5;
     }
 
-    update() {
-        super.update();
-        this.vel.y = 0;
-        if (this.arteria && this.pos.x > this.arteria.xInicio + this.arteria.ancho) {
-            this.pos.x = this.arteria.xInicio - this.r;
+    update(velocidadFlujo) {
+        super.update(velocidadFlujo);
+        // this.vel.y = 0;
+        // if (this.arteria && this.pos.x > this.arteria.xInicio + this.arteria.ancho) {
+        //     this.pos.x = this.arteria.xInicio - this.r;
 
-            this.pos.y = random(
-                this.arteria.yLumenSuperior + this.r,
-                this.arteria.yLumenInferior - this.r
-            );
-        }
+        //     this.pos.y = random(
+        //         this.arteria.yLumenSuperior + this.r,
+        //         this.arteria.yLumenInferior - this.r
+        //     );
+        // }
     }
 
     display() {

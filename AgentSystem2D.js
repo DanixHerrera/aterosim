@@ -3,6 +3,7 @@ class AgentSystem2D {
     constructor(arteria, config = {}) {
         this.arteria = arteria;
         this.agents = [];
+        this.velocidadFlujo = config.velocidadFlujo ?? 1.5;
 
         this.config = {
             globulosRojos: config.globulosRojos ?? 12,
@@ -28,7 +29,7 @@ class AgentSystem2D {
         }
     }
 
-    randomLumenPosition(margin = 12) {
+    randomLumenPosition(margin = 30) {
         const a = this.arteria;
 
         return createVector(
@@ -77,7 +78,7 @@ class AgentSystem2D {
     update() {
         for (let i = this.agents.length - 1; i >= 0; i--) {
             const agent = this.agents[i];
-            agent.update();
+            agent.update(this.velocidadFlujo);
 
             if (agent.isDead()) {
                 this.agents.splice(i, 1);
