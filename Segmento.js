@@ -2,23 +2,20 @@ class Segmento {
     constructor(x, ancho, estado) {
         this.x = x;
         this.ancho = ancho;
-        this.estado = estado;
-        this.c = color("#fc817d");
+        this.estado = estado || "sano";
     }
 
     display(y, alto) {
         noStroke();
-        fill(this.c);
+        fill(this.isDamage() ? "#8f3535" : "#fc817d");
         rect(this.x, y, this.ancho, alto);
     }
 
     damage() {
-        
+        this.estado = "dañado";
     }
 
     isDamage() {
-        return false;
+        return this.estado === "dañado";
     }
-
-
 }

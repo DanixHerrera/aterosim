@@ -11,20 +11,20 @@ class HDL extends Agent2D {
         this.state = "normal";
     }
 
-    update() {
-        super.update();
+    update(velocidadFlujo) {
+        super.update(velocidadFlujo);
 
         // Movimiento horizontal dentro del lumen
-        this.vel.y = 0;
+        // this.vel.y = 0;
 
-        if (this.arteria && this.pos.x > this.arteria.xInicio + this.arteria.ancho) {
-            this.pos.x = this.arteria.xInicio - this.r;
+        // if (this.arteria && this.pos.x > this.arteria.xInicio + this.arteria.ancho) {
+        //     this.pos.x = this.arteria.xInicio - this.r;
 
-            this.pos.y = random(
-                this.arteria.yLumenSuperior + this.r,
-                this.arteria.yLumenInferior - this.r
-            );
-        }
+        //     this.pos.y = random(
+        //         this.arteria.yLumenSuperior + this.r,
+        //         this.arteria.yLumenInferior - this.r
+        //     );
+        // }
     }
 
     display() {

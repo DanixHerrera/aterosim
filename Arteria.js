@@ -13,8 +13,11 @@ class Arteria {
         this.yLumenSuperior = this.y - this.altoLumen / 2;
         this.yLumenInferior = this.y + this.altoLumen / 2;
 
-        this.endotelio = new Endotelio();
+        this.endotelio = new Endotelio(this.ancho);
         this.intima = new Intima();
+
+        this.endotelio.segmentos[3].damage();
+        this.endotelio.segmentos[7].damage();
 
         this.c = color("#d31a17");
     }

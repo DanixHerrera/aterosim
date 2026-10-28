@@ -5,23 +5,44 @@ class Macrofago extends Agent2D {
         super(x, y, 8);
 
         this.vel = createVector(random(0.5, 0.9), 0);
-        this.maxSpeed = 0.9;
+        this.maxSpeed = 1.5;
+        this.maxSteeringForce = 0.15;
         this.size = 19;
+        this.radioDeteccion = 100;
+        this.arrivalDist = 120;
+        this.objetivo = null;
 
         this.state = "normal";
     }
 
-    update() {
-        this.vel.y = 0;
+    detectar(ldls) {
+        let objetivo = null;
+        let distanciaMinima = this.radioDeteccion;
+        for (const ldl of ldls) {
+            if (ldl.state !== "oxidado") {
+                continue;
+            }
+            const distancia = p5.Vector.dist(this.pos, ldl.pos);
+            if (distancia <= distanciaMinima) {
+                distanciaMinima = distancia;
+                objetivo = ldl;
+            }
+        }
+        this.objetivo = objetivo;
+        this.state = objetivo ? "persiguiendo" : "normal";
+    }
 
-        super.update();
-        if (this.arteria && this.pos.x > this.arteria.xInicio + this.arteria.ancho) {
-            this.pos.x = this.arteria.xInicio - this.r;
+    update(velocidadFlujo, ldls = []) {
+        this.detectar(ldls);
+        if (this.objetivo) {
+            this.arrive(this.objetivo.pos);
+        }
+        super.update(velocidadFlujo);
+    }
 
-            this.pos.y = random(
-                this.arteria.yLumenSuperior + this.r,
-                this.arteria.yLumenInferior - this.r
-            );
+    seguirFlujo(arteria, velocidadFlujo) {
+        if (!this.objetivo) {
+            super.seguirFlujo(arteria, velocidadFlujo);
         }
     }
 
