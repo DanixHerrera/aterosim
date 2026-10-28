@@ -11,13 +11,16 @@ class LDL extends Agent2D {
 
     update() {
         super.update();
-        // Circulación horizontal
+
         this.vel.y = 0;
 
-        // Volver a entrar por la izquierda
-        if (this.pos.x > width + this.size) {
-            this.pos.x = -this.size;
-            this.pos.y = random(130, 270);
+        if (this.arteria && this.pos.x > this.arteria.xInicio + this.arteria.ancho) {
+            this.pos.x = this.arteria.xInicio - this.r;
+
+            this.pos.y = random(
+                this.arteria.yLumenSuperior + this.r,
+                this.arteria.yLumenInferior - this.r
+            );
         }
     }
 

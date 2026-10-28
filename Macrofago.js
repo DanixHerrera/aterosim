@@ -15,9 +15,13 @@ class Macrofago extends Agent2D {
         this.vel.y = 0;
 
         super.update();
-        if (this.pos.x > width + this.size) {
-            this.pos.x = -this.size;
-            this.pos.y = random(140, 260);
+        if (this.arteria && this.pos.x > this.arteria.xInicio + this.arteria.ancho) {
+            this.pos.x = this.arteria.xInicio - this.r;
+
+            this.pos.y = random(
+                this.arteria.yLumenSuperior + this.r,
+                this.arteria.yLumenInferior - this.r
+            );
         }
     }
 

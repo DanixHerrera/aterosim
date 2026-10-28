@@ -2,12 +2,14 @@ class Arteria {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.ancho = 1800;
-        this.alto = 400;
+        this.ancho = width;
+        this.alto = height;
 
         this.altoLumen = 200;
         this.altoEndotelio = 8;
-        this.xInicio = this.x - this.ancho/ 2;
+
+        this.xInicio = this.x - this.ancho / 2;
+
         this.yLumenSuperior = this.y - this.altoLumen / 2;
         this.yLumenInferior = this.y + this.altoLumen / 2;
 
