@@ -1,11 +1,12 @@
+let arteria;
+
 function setup() {
-    createCanvas(800, 600);
+    createCanvas(windowWidth, windowHeight);
+    background(0);
+
+    arteria = new Arteria(windowWidth/2, windowHeight/2, 800, 200);
 }
 
 function draw() {
-    background(220);
-
-    noStroke();
-    fill(255);
-    ellipse(0, 0, 2);
+    arteria.display();
 }
