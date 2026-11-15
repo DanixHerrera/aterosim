@@ -15,7 +15,7 @@ class Intima {
 
         this.grosor = 24;
         this.distanciaLumen = 14;
-        this.c = color("#fa5d59");
+        this.c = color("#F37670");
 
         this.anchoTotal = anchoTotal;
         this.perlinAmplitud = perlinAmplitud;

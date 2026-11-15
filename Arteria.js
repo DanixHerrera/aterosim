@@ -41,7 +41,7 @@ class Arteria {
         this.endotelioSuperior.segmentos[7].damage();
         this.endotelioInferior.segmentos[5].damage();
 
-        this.c = color("#d31a17");
+        this.c = color("#FFC1C2");
     }
 
     display() {

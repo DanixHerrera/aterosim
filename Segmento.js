@@ -15,7 +15,7 @@ class Segmento {
         if (this.isDamage()) {
             fill("#8f3535");
         } else {
-            fill("#fc817d");
+            fill("#FF6B6B");
         }
 
         beginShape();
