@@ -48,44 +48,31 @@ class Macrofago extends Agent2D {
 
     display() {
         push();
-
         translate(this.pos.x, this.pos.y);
-
-        // Reducir todo el macrófago proporcionalmente
         let escala = this.size / 19;
         scale(escala);
-
         noStroke();
-
-        fill(40, 90, 55, 45);
+        fill(70, 75, 85, 40);
         ellipse(2, 3, 19 * 2.2, 19 * 1.9);
-
-        fill(35, 115, 70);
+        fill(125, 132, 143);
         beginShape();
-
-        for (let i = 0; i < 14; i++) {
-            let angulo = TWO_PI * i / 14;
-            let variacion = (i % 2 === 0) ? 1 : 0.84;
-            let radio = 19 * variacion;
-
-            vertex(cos(angulo) * radio, sin(angulo) * radio);
-        }
-
+            for (let i = 0; i < 14; i++) {
+                let angulo = TWO_PI * i / 14;
+                let variacion = (i % 2 === 0) ? 1 : 0.84;
+                let radio = 19 * variacion;
+                vertex(cos(angulo) * radio, sin(angulo) * radio);
+            }
         endShape(CLOSE);
-
-        fill(95, 190, 120);
+        fill(190, 195, 203);
         ellipse(0, 0, 19 * 1.55, 19 * 1.4);
-
-        fill(40, 105, 70);
+        fill(85, 91, 103);
         ellipse(-3, -2, 11, 13);
         ellipse(4, -3, 10, 11);
         ellipse(1, 4, 10, 9);
-
-        fill(190, 235, 170);
+        fill(225, 228, 234);
         circle(-10, 3, 4);
         circle(9, 5, 5);
         circle(2, -10, 3);
-
         pop();
     }
 }
