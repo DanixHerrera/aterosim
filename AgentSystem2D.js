@@ -4,7 +4,7 @@ class AgentSystem2D {
         this.arteria = arteria;
         this.agents = [];
         this.velocidadFlujo = config.velocidadFlujo ?? 1.5;
-        this.damp = 0.3;
+        this.damp = 0.4;
 
         this.config = {
             globulosRojos: config.globulosRojos ?? 12,
@@ -104,51 +104,44 @@ class AgentSystem2D {
 
     separate(a1, a2) {
         let dif = p5.Vector.sub(a1.pos, a2.pos);
-        if (dif.magSq() === 0)
-            dif = createVector(1, 0);
         let distancia = dif.mag();
         let distanciaMinima = a1.r + a2.r;
+        if (dif.magSq() === 0)
+            dif = createVector(1, 0);
         dif.normalize();
-        dif.setMag(distanciaMinima - distancia);
-        a1.pos.add(dif);
+        let superposicion = distanciaMinima - distancia;
+        let mag1 = a1.mass > 0 ? 1 / a1.mass : 0;
+        let mag2 = a2.mass > 0 ? 1 / a2.mass : 0;
+        let mag3 = mag1 + mag2;
+        if (mag3 === 0)
+            return;
+        dif.mult(superposicion / mag3);
+        a1.pos.add(p5.Vector.mult(dif, mag1));
+        a2.pos.sub(p5.Vector.mult(dif, mag2));
     }
 
     collision(a1, a2) {
         if (a1.touch(a2)) {
-
             let dif = p5.Vector.sub(a1.pos, a2.pos);
-
             if (dif.magSq() === 0)
                 dif = createVector(1, 0);
-
             dif.normalize();
-
-            this.separate(a1, a2);
-
             let vel1 = a1.vel.copy();
             let vel2 = a2.vel.copy();
-
             let vel3 = p5.Vector.sub(vel1, vel2);
-
             const mag1 = a1.mass > 0 ? 1 / a1.mass : 0;
             const mag2 = a2.mass > 0 ? 1 / a2.mass : 0;
-
             const mag3 = mag1 + mag2;
-
             if (mag3 === 0)
                 return;
-
             const mag4 = vel3.dot(dif);
-
             if (mag4 > 0)
                 return;
-
             const impulso = -(1 + this.damp) * mag4 / mag3;
-
             let vel4 = p5.Vector.mult(dif, impulso);
-
             a1.vel.add(p5.Vector.mult(vel4, mag1));
             a2.vel.sub(p5.Vector.mult(vel4, mag2));
+            this.separate(a1, a2);
         }
     }
 
