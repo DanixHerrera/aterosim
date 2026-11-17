@@ -195,11 +195,19 @@ class Agent2D {
         let xLocal = this.pos.x - arteria.xInicio;
         let offsetSuperior = arteria.endotelioSuperior.offsetEn(xLocal);
         let offsetInferior = arteria.endotelioInferior.offsetEn(xLocal);
+        let placaSuperior = arteria.endotelioSuperior.placaEn(xLocal);
+        let placaInferior = arteria.endotelioInferior.placaEn(xLocal);
 
-        return {
-            top: arteria.yLumenSuperior + arteria.altoEndotelio + this.size + offsetSuperior,
-            bottom: arteria.yLumenInferior - arteria.altoEndotelio - this.size + offsetInferior
-        };
+        let top = arteria.yLumenSuperior + arteria.altoEndotelio + this.size + offsetSuperior + placaSuperior;
+        let bottom = arteria.yLumenInferior - arteria.altoEndotelio - this.size + offsetInferior - placaInferior;
+
+        if (top > bottom) {
+            let medio = (top + bottom) / 2;
+            top = medio;
+            bottom = medio;
+        }
+
+        return { top: top, bottom: bottom };
     }
 
     seguirFlujo(arteria, velocidadFlujo) {

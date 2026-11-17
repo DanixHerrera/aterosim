@@ -51,10 +51,24 @@ function crearSimulacion() {
 function draw() {
     background("#620202");
 
+    arteria.actualizarPlaca();
     arteria.display();
 
     sistema.update();
     sistema.display();
+
+    mostrarEstenosis();
+}
+
+function mostrarEstenosis() {
+    push();
+    noStroke();
+    fill(255);
+    textSize(16);
+    textAlign(LEFT, TOP);
+    text("Estenosis máxima: " + arteria.estenosisMaxima().toFixed(1) + " %", 16, 16);
+    text("Estenosis promedio: " + arteria.estenosisPromedio().toFixed(1) + " %", 16, 38);
+    pop();
 }
 
 function windowResized() {
