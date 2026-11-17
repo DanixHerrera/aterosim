@@ -18,23 +18,33 @@ class Arteria {
         this.perlinEscala = 0.0025;
         this.perlinSeed = 142;
 
+        this.amplitudCurva = 50;
+        this.anchoCurva = 260;
+        this.curvas = [
+            { posicion: 0.33, sentido: -1 },
+            { posicion: 0.66, sentido: 1 }
+        ];
+
         this.endotelioSuperior = new Endotelio(
             this.ancho,
             this.perlinAmplitudEndotelio,
             this.perlinEscala,
-            this.perlinSeed
+            this.perlinSeed,
+            this
         );
         this.endotelioInferior = new Endotelio(
             this.ancho,
             this.perlinAmplitudEndotelio,
             this.perlinEscala,
-            this.perlinSeed
+            this.perlinSeed,
+            this
         );
         this.intima = new Intima(
             this.ancho,
             this.perlinAmplitudIntima,
             this.perlinEscala,
-            this.perlinSeed
+            this.perlinSeed,
+            this
         );
 
         this.endotelioSuperior.segmentos[3].damage();
@@ -96,9 +106,30 @@ class Arteria {
         endShape(CLOSE);
     }
 
+    desviacion(x) {
+        let total = 0;
+
+        for (let i = 0; i < this.curvas.length; i++) {
+            let curva = this.curvas[i];
+            let centro = this.ancho * curva.posicion;
+            let t = (x - centro) / this.anchoCurva;
+
+            total = total + curva.sentido * this.amplitudCurva * Math.exp(-t * t);
+        }
+
+        return total;
+    }
+
     dentroDelLumen(pos) {
         if (pos.x >= this.xInicio && pos.x <= this.xInicio + this.ancho) {
-            if (pos.y >= this.yLumenSuperior && pos.y <= this.yLumenInferior) {
+            let xLocal = pos.x - this.xInicio;
+            let offsetSuperior = this.endotelioSuperior.offsetEn(xLocal);
+            let offsetInferior = this.endotelioInferior.offsetEn(xLocal);
+
+            let top = this.yLumenSuperior + this.altoEndotelio + offsetSuperior;
+            let bottom = this.yLumenInferior - this.altoEndotelio + offsetInferior;
+
+            if (pos.y >= top && pos.y <= bottom) {
                 return true;
             }
         }

@@ -35,10 +35,13 @@ function crearSimulacion() {
         const segmentoX = arteria.xInicio + [3, 7][indiceSegmento] * (arteria.endotelioSuperior.anchoSegmento + arteria.endotelioSuperior.separacionSegmentos);
 
         ldls[i].pos.x = segmentoX + segmento.ancho / 2;
+        let xLocal = ldls[i].pos.x - arteria.xInicio;
+        let offsetSuperior = arteria.endotelioSuperior.offsetEn(xLocal);
+        let offsetInferior = arteria.endotelioInferior.offsetEn(xLocal);
         if (i % 2 === 0) {
-            ldls[i].pos.y = arteria.yLumenSuperior + 12;
+            ldls[i].pos.y = arteria.yLumenSuperior + 12 + offsetSuperior;
         } else {
-            ldls[i].pos.y = arteria.yLumenInferior - 12;
+            ldls[i].pos.y = arteria.yLumenInferior - 12 + offsetInferior;
         }
         ldls[i].vel.set(0, 0);
         ldls[i].acc.set(0, 0);
