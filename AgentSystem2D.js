@@ -32,13 +32,16 @@ class AgentSystem2D {
     randomLumenPosition(margin = 30) {
         const a = this.arteria;
 
-        return createVector(
-            random(a.xInicio + margin, a.xInicio + a.ancho - margin),
-            random(
-                a.yLumenSuperior + margin,
-                a.yLumenInferior - margin
-            )
+        let x = random(a.xInicio + margin, a.xInicio + a.ancho - margin);
+        let xLocal = x - a.xInicio;
+        let offsetSuperior = a.endotelioSuperior.offsetEn(xLocal);
+        let offsetInferior = a.endotelioInferior.offsetEn(xLocal);
+        let y = random(
+            a.yLumenSuperior + margin + offsetSuperior,
+            a.yLumenInferior - margin + offsetInferior
         );
+
+        return createVector(x, y);
     }
 
     createAgents(Type, quantity) {
@@ -69,8 +72,11 @@ class AgentSystem2D {
             a.xInicio + a.ancho - 30
         );
 
+        let xLocal = x - a.xInicio;
+        let offsetInferior = a.endotelioInferior.offsetEn(xLocal);
+
         const y = a.yLumenInferior + a.intima.distanciaLumen
-            + a.intima.grosor / 2 + 8;
+            + a.intima.grosor / 2 + 8 + offsetInferior;
 
         return this.addAgent(CelulaEspumosa, x, y);
     }

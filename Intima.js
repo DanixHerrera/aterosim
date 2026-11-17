@@ -1,5 +1,5 @@
 class Intima {
-    constructor(anchoTotal, perlinAmplitud, perlinEscala, perlinSeed) {
+    constructor(anchoTotal, perlinAmplitud, perlinEscala, perlinSeed, arteria) {
         if (anchoTotal === undefined) {
             anchoTotal = width;
         }
@@ -21,6 +21,7 @@ class Intima {
         this.perlinAmplitud = perlinAmplitud;
         this.perlinEscala = perlinEscala;
         this.perlinSeed = perlinSeed;
+        this.arteria = arteria;
         this.cantidadPuntos = 100;
         this.offsets = [];
 
@@ -42,6 +43,10 @@ class Intima {
                 -this.perlinAmplitud,
                 this.perlinAmplitud
             );
+
+            if (this.arteria) {
+                offset = offset + this.arteria.desviacion(x);
+            }
 
             this.offsets.push(offset);
         }
