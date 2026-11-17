@@ -228,4 +228,9 @@ class Agent2D {
         this.pos.x = arteria.xInicio - this.size;
         this.pos.y = random(limites.top, limites.bottom);
     }
+
+    touch(a) {
+        let dif = p5.Vector.sub(a.pos, this.pos)
+        return dif.mag() < this.r + a.r
+    }
 }

@@ -4,6 +4,7 @@ class AgentSystem2D {
         this.arteria = arteria;
         this.agents = [];
         this.velocidadFlujo = config.velocidadFlujo ?? 1.5;
+        this.damp = 0.3;
 
         this.config = {
             globulosRojos: config.globulosRojos ?? 12,
@@ -88,6 +89,7 @@ class AgentSystem2D {
                 this.agents.splice(i, 1);
             }
         }
+        this.detectCollisions();
     }
 
     display() {
@@ -98,5 +100,65 @@ class AgentSystem2D {
 
     getAgentsOfType(Type) {
         return this.agents.filter(agent => agent instanceof Type);
+    }
+
+    separate(a1, a2) {
+        let dif = p5.Vector.sub(a1.pos, a2.pos);
+        if (dif.magSq() === 0)
+            dif = createVector(1, 0);
+        let distancia = dif.mag();
+        let distanciaMinima = a1.r + a2.r;
+        dif.normalize();
+        dif.setMag(distanciaMinima - distancia);
+        a1.pos.add(dif);
+    }
+
+    collision(a1, a2) {
+        if (a1.touch(a2)) {
+
+            let dif = p5.Vector.sub(a1.pos, a2.pos);
+
+            if (dif.magSq() === 0)
+                dif = createVector(1, 0);
+
+            dif.normalize();
+
+            this.separate(a1, a2);
+
+            let vel1 = a1.vel.copy();
+            let vel2 = a2.vel.copy();
+
+            let vel3 = p5.Vector.sub(vel1, vel2);
+
+            const mag1 = a1.mass > 0 ? 1 / a1.mass : 0;
+            const mag2 = a2.mass > 0 ? 1 / a2.mass : 0;
+
+            const mag3 = mag1 + mag2;
+
+            if (mag3 === 0)
+                return;
+
+            const mag4 = vel3.dot(dif);
+
+            if (mag4 > 0)
+                return;
+
+            const impulso = -(1 + this.damp) * mag4 / mag3;
+
+            let vel4 = p5.Vector.mult(dif, impulso);
+
+            a1.vel.add(p5.Vector.mult(vel4, mag1));
+            a2.vel.sub(p5.Vector.mult(vel4, mag2));
+        }
+    }
+
+    detectCollisions() {
+        for (let i = 0; i < this.agents.length; i++) {
+            for (let j = i + 1; j < this.agents.length; j++) {
+                let a1 = this.agents[i];
+                let a2 = this.agents[j];
+                this.collision(a1, a2);
+            }
+        }
     }
 }
