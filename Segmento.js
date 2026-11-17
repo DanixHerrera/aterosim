@@ -3,6 +3,7 @@ class Segmento {
         this.x = x;
         this.ancho = ancho;
         this.desgaste = 0;
+        this.celulasEspumosas = 0;
 
         if (estado === "dañado") {
             this.desgaste = 1;

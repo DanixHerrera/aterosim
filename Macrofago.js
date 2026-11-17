@@ -12,10 +12,37 @@ class Macrofago extends Agent2D {
         this.arrivalDist = 120;
         this.objetivo = null;
 
+        this.capacidadAbsorcion = 3;
+        this.ldlAbsorbidos = 0;
+        this.margenAbsorcion = 4;
+
         this.state = "normal";
     }
 
+    estaLleno() {
+        return this.ldlAbsorbidos >= this.capacidadAbsorcion;
+    }
+
+    absorber(ldl) {
+        if (this.estaLleno() || ldl.state !== "oxidado") {
+            return false;
+        }
+        const distancia = p5.Vector.dist(this.pos, ldl.pos);
+        if (distancia > this.r + ldl.r + this.margenAbsorcion) {
+            return false;
+        }
+        ldl.state = "absorbido";
+        ldl.mass = 0;
+        this.ldlAbsorbidos++;
+        return true;
+    }
+
     detectar(ldls) {
+        if (this.estaLleno()) {
+            this.objetivo = null;
+            this.state = "lleno";
+            return;
+        }
         let objetivo = null;
         let distanciaMinima = this.radioDeteccion;
         for (const ldl of ldls) {
@@ -38,6 +65,9 @@ class Macrofago extends Agent2D {
             this.arrive(this.objetivo.pos);
         }
         super.update(velocidadFlujo);
+        if (this.objetivo) {
+            this.absorber(this.objetivo);
+        }
     }
 
     seguirFlujo(arteria, velocidadFlujo) {
@@ -73,6 +103,12 @@ class Macrofago extends Agent2D {
         circle(-10, 3, 4);
         circle(9, 5, 5);
         circle(2, -10, 3);
+
+        const gotas = [[-7, 6], [7, 1], [-1, -8]];
+        fill(255, 214, 110);
+        for (let i = 0; i < this.ldlAbsorbidos && i < gotas.length; i++) {
+            circle(gotas[i][0], gotas[i][1], 8);
+        }
         pop();
     }
 }

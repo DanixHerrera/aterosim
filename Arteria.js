@@ -120,6 +120,36 @@ class Arteria {
         return total;
     }
 
+    paredMasCercana(pos) {
+        let xLocal = pos.x - this.xInicio;
+        let top = this.yLumenSuperior + this.endotelioSuperior.offsetEn(xLocal);
+        let bottom = this.yLumenInferior + this.endotelioInferior.offsetEn(xLocal);
+        if (pos.y < (top + bottom) / 2) {
+            return "superior";
+        }
+        return "inferior";
+    }
+
+    posicionEnIntima(indice, lado, n) {
+        let endotelio = this.endotelioSuperior;
+        if (lado === "inferior") {
+            endotelio = this.endotelioInferior;
+        }
+        let paso = endotelio.anchoSegmento + endotelio.separacionSegmentos;
+        let xLocal = indice * paso + endotelio.anchoSegmento / 2;
+        xLocal = xLocal + ((n % 3) - 1) * 6;
+
+        let capa = Math.floor(n / 3);
+        let offset = this.intima.offsetEn(xLocal);
+        let y;
+        if (lado === "superior") {
+            y = this.yLumenSuperior - this.intima.distanciaLumen + offset + capa * 6;
+        } else {
+            y = this.yLumenInferior + this.intima.distanciaLumen + offset - capa * 6;
+        }
+        return createVector(this.xInicio + xLocal, y);
+    }
+
     dentroDelLumen(pos) {
         if (pos.x >= this.xInicio && pos.x <= this.xInicio + this.ancho) {
             let xLocal = pos.x - this.xInicio;

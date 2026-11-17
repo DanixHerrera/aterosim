@@ -82,6 +82,27 @@ class AgentSystem2D {
         return this.addAgent(CelulaEspumosa, x, y);
     }
 
+    convertirEnCelulaEspumosa(macrofago) {
+        const a = this.arteria;
+        const lado = a.paredMasCercana(macrofago.pos);
+        let endotelio = a.endotelioSuperior;
+        if (lado === "inferior") {
+            endotelio = a.endotelioInferior;
+        }
+
+        const xLocal = constrain(macrofago.pos.x - a.xInicio, 0, a.ancho);
+        const indice = endotelio.indiceEn(xLocal);
+        const segmento = endotelio.segmentos[indice];
+
+        const pos = a.posicionEnIntima(indice, lado, segmento.celulasEspumosas);
+        const celula = new CelulaEspumosa(pos.x, pos.y);
+        celula.arteria = a;
+        celula.segmento = segmento;
+        segmento.celulasEspumosas++;
+
+        return celula;
+    }
+
     esEstatico(agent) {
         return agent instanceof CelulaEspumosa;
     }
@@ -92,6 +113,10 @@ class AgentSystem2D {
             const agent = this.agents[i];
             if (agent instanceof Macrofago) {
                 agent.update(this.velocidadFlujo, ldls);
+                if (agent.estaLleno()) {
+                    this.agents[i] = this.convertirEnCelulaEspumosa(agent);
+                    continue;
+                }
             } else {
                 agent.update(this.velocidadFlujo);
             }

@@ -84,6 +84,12 @@ class Endotelio {
         return lerp(this.offsetsDerecha[indice], this.offsetsIzquierda[indice + 1], t);
     }
 
+    indiceEn(x) {
+        let paso = this.anchoSegmento + this.separacionSegmentos;
+        let indice = Math.floor(x / paso);
+        return constrain(indice, 0, this.segmentos.length - 1);
+    }
+
     display(x, y, alto) {
         for (let i = 0; i < this.segmentos.length; i++) {
             this.segmentos[i].x = x + i * (this.anchoSegmento + this.separacionSegmentos);
