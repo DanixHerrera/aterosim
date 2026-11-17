@@ -1,5 +1,5 @@
 class Endotelio {
-    constructor(anchoTotal, perlinAmplitud, perlinEscala, perlinSeed) {
+    constructor(anchoTotal, perlinAmplitud, perlinEscala, perlinSeed, arteria) {
         if (anchoTotal === undefined) {
             anchoTotal = width;
         }
@@ -21,6 +21,7 @@ class Endotelio {
         this.perlinAmplitud = perlinAmplitud;
         this.perlinEscala = perlinEscala;
         this.perlinSeed = perlinSeed;
+        this.arteria = arteria;
 
         this.offsetsIzquierda = [];
         this.offsetsDerecha = [];
@@ -46,9 +47,41 @@ class Endotelio {
             let offsetIzquierda = map( ruidoIzquierda, 0, 1, -this.perlinAmplitud,this.perlinAmplitud);
             let offsetDerecha = map(ruidoDerecha, 0,1,-this.perlinAmplitud,this.perlinAmplitud);
 
+            if (this.arteria) {
+                offsetIzquierda = offsetIzquierda + this.arteria.desviacion(xIzquierda);
+                offsetDerecha = offsetDerecha + this.arteria.desviacion(xDerecha);
+            }
+
             this.offsetsIzquierda.push(offsetIzquierda);
             this.offsetsDerecha.push(offsetDerecha);
         }
+    }
+
+    offsetEn(x) {
+        let paso = this.anchoSegmento + this.separacionSegmentos;
+        let ultimo = this.segmentos.length - 1;
+
+        if (x <= 0) {
+            return this.offsetsIzquierda[0];
+        }
+
+        let xFinal = ultimo * paso + this.anchoSegmento;
+
+        if (x >= xFinal) {
+            return this.offsetsDerecha[ultimo];
+        }
+
+        let indice = Math.floor(x / paso);
+        let inicioSegmento = indice * paso;
+        let finSegmento = inicioSegmento + this.anchoSegmento;
+
+        if (x <= finSegmento) {
+            let t = (x - inicioSegmento) / this.anchoSegmento;
+            return lerp(this.offsetsIzquierda[indice], this.offsetsDerecha[indice], t);
+        }
+
+        let t = (x - finSegmento) / this.separacionSegmentos;
+        return lerp(this.offsetsDerecha[indice], this.offsetsIzquierda[indice + 1], t);
     }
 
     display(x, y, alto) {
