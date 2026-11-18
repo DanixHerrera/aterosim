@@ -37,9 +37,16 @@ class Macrofago extends Agent2D {
         return true;
     }
 
+    soltarObjetivo() {
+        if (this.objetivo && this.objetivo.reservadoPor === this) {
+            this.objetivo.reservadoPor = null;
+        }
+        this.objetivo = null;
+    }
+
     detectar(ldls) {
         if (this.estaLleno()) {
-            this.objetivo = null;
+            this.soltarObjetivo();
             this.state = "lleno";
             return;
         }
@@ -49,10 +56,19 @@ class Macrofago extends Agent2D {
             if (ldl.state !== "oxidado") {
                 continue;
             }
+            if (ldl.reservadoPor && ldl.reservadoPor !== this) {
+                continue;
+            }
             const distancia = p5.Vector.dist(this.pos, ldl.pos);
             if (distancia <= distanciaMinima) {
                 distanciaMinima = distancia;
                 objetivo = ldl;
+            }
+        }
+        if (objetivo !== this.objetivo) {
+            this.soltarObjetivo();
+            if (objetivo) {
+                objetivo.reservadoPor = this;
             }
         }
         this.objetivo = objetivo;
@@ -83,7 +99,12 @@ class Macrofago extends Agent2D {
             endotelio = a.endotelioInferior;
         }
         const indice = endotelio.indiceEn(this.pos.x - a.xInicio);
-        return endotelio.segmentos[indice].isDamage();
+        for (let i = indice - 1; i <= indice + 1; i++) {
+            if (i >= 0 && i < endotelio.segmentos.length && endotelio.segmentos[i].isDamage()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     limitarAlLumen(arteria) {

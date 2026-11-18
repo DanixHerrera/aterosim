@@ -7,6 +7,7 @@ class CelulaEspumosa extends Macrofago {
         this.state = "espumosa";
         this.size = 12;
         this.vel.set(0, 0);
+        this.r = 0;
         this.segmento = null;
     }
 

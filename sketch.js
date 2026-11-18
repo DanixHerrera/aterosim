@@ -66,6 +66,7 @@ function actualizarContadores() {
     document.getElementById("contador-oxidantes").textContent = oxidantes;
     document.getElementById("contador-hdl").textContent = hdl;
     document.getElementById("contador-ldl-oxidados").textContent = oxidados;
+    document.getElementById("contador-estenosis").textContent = arteria.estenosisMaxima().toFixed(1);
 }
 
 function crearSimulacion() {
@@ -94,18 +95,6 @@ function draw() {
     sistema.update();
     sistema.display();
     actualizarContadores();
-    mostrarEstenosis();
-}
-
-function mostrarEstenosis() {
-    push();
-    noStroke();
-    fill(255);
-    textSize(16);
-    textAlign(RIGHT, TOP);
-    text("Estenosis máxima: " + arteria.estenosisMaxima().toFixed(1) + " %", width - 16, 16);
-    text("Estenosis promedio: " + arteria.estenosisPromedio().toFixed(1) + " %", width - 16, 38);
-    pop();
 }
 
 function windowResized() {
