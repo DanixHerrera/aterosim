@@ -331,7 +331,7 @@ function crearSimulacion() {
 
     sistema = new AgentSystem2D(arteria, 
         {
-        globulosRojos: 25,
+        globulosRojos: 20,
         ldl: cantidadLDL(nivelLDL),
         hdl: cantidadHDL(nivelHDL),
         oxidantes: 10,

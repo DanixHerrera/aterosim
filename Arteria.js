@@ -5,7 +5,7 @@ class Arteria {
         this.ancho = width;
         this.alto = height;
 
-        this.altoLumen = 180;
+        this.altoLumen = 150;
         this.altoEndotelio = 8;
 
         this.xInicio = this.x - this.ancho / 2;

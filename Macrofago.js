@@ -13,7 +13,7 @@ class Macrofago extends Agent2D {
         this.arrivalDist = 120;
         this.objetivo = null;
 
-        this.capacidadAbsorcion = 3;
+        this.capacidadAbsorcion = 1;
         this.ldlAbsorbidos = 0;
         this.margenAbsorcion = 4;
         this.inIntima = false;

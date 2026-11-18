@@ -27,7 +27,7 @@ class Endotelio {
         this.offsetsDerecha = [];
 
         this.direccionLumen = 1;
-        this.alturaPorCelula = 6;
+        this.alturaPorCelula = 12;
         this.placaIzquierda = [];
         this.placaDerecha = [];
 
