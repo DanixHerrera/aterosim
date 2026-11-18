@@ -140,7 +140,10 @@ class Macrofago extends Agent2D {
     update(velocidadFlujo, ldls = []) {
         this.detectar(ldls);
         if (this.objetivo) {
-            this.vel.limit(this.maxSpeedObjetivo);
+            let limiteVelocidad = this.inIntima
+                ? 5.5
+                : this.maxSpeedObjetivo;
+            this.vel.limit(limiteVelocidad);
             let objetivoVertical = this.objetivo.pos.y;
             let objetivoX = this.objetivo.pos.x;
 
