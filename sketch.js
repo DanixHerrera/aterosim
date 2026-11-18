@@ -10,22 +10,22 @@ let segmentosGenerados = null;
 
 let configuracionEscenarios = {
     "escenario-saludable": {
-        cantidad: 9,
+        cantidad: 40,
         seed: 3101,
         macrofagos: 25
     },
     "escenario-ldl-alto": {
-        cantidad: 13,
+        cantidad: 40,
         seed: 1901,
         macrofagos: 45
     },
     "escenario-hipertension": {
-        cantidad: 14,
+        cantidad: 40,
         seed: 1601,
         macrofagos: 40
     },
     "escenario-fumador": {
-        cantidad: 14,
+        cantidad: 40,
         seed: 1001,
         macrofagos: 50
     }
@@ -57,14 +57,6 @@ function configurarControles() {
     actualizarHDL();
 
     configurarEscenarios();
-}
-
-function mostrarValorSlider(slider) {
-    let valor = document.getElementById(slider.id + "-valor");
-
-    if (valor) {
-        valor.textContent = slider.value;
-    }
 }
 
 function actualizarTabaquismo() {
@@ -235,7 +227,6 @@ function cantidadHDL(nivel) {
 function generarSegmentosEscenario(nombre, cantidad) {
     let semilla = configuracionEscenarios[nombre].seed;
     let estado = semilla;
-    let usados = new Set();
     let indices = [];
 
     function aleatorio() {
@@ -243,14 +234,16 @@ function generarSegmentosEscenario(nombre, cantidad) {
         return estado / 4294967296;
     }
 
-    while (indices.length < cantidad) {
-        let pared = aleatorio() < 0.5 ? "superior" : "inferior";
-        let indice = floor(aleatorio() * 100);
-        let clave = pared + ":" + indice;
+    for (let pared of ["superior", "inferior"]) {
+        let usados = new Set();
 
-        if (!usados.has(clave)) {
-            usados.add(clave);
-            indices.push({ pared: pared, indice: indice });
+        while (usados.size < cantidad) {
+            let indice = floor(aleatorio() * 100);
+
+            if (!usados.has(indice)) {
+                usados.add(indice);
+                indices.push({ pared: pared, indice: indice });
+            }
         }
     }
 

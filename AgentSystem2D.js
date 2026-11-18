@@ -660,7 +660,72 @@ class AgentSystem2D {
     }
 
     limitarLDLOxidadosPorZona() {
-        return;
+        const ldlsOxidados = this.getAgentsOfType(LDL).filter(ldl =>
+            ldl.state === "oxidado"
+        );
+
+        if (ldlsOxidados.length <= 100) {
+            return;
+        }
+
+        const zonas = new Map();
+
+        for (const ldl of ldlsOxidados) {
+            const lado = this.arteria.paredMasCercana(ldl.pos);
+            const endotelio = lado === "inferior"
+                ? this.arteria.endotelioInferior
+                : this.arteria.endotelioSuperior;
+            const xLocal = constrain(ldl.pos.x - this.arteria.xInicio, 0, this.arteria.ancho);
+            const indice = endotelio.indiceEn(xLocal);
+            const clave = lado + ":" + indice;
+
+            if (!zonas.has(clave)) {
+                zonas.set(clave, {
+                    endotelio: endotelio,
+                    indice: indice,
+                    ldls: []
+                });
+            }
+
+            zonas.get(clave).ldls.push(ldl);
+        }
+
+        for (const zona of zonas.values()) {
+            if (zona.ldls.length < 6) {
+                continue;
+            }
+
+            if (!zona.endotelio.hayCelulaEspumosaCercana(zona.indice, 3)) {
+                continue;
+            }
+
+            const exceso = ldlsOxidados.length - 100;
+            const porcentaje = 0.20;
+            const objetivo = Math.min(
+                zona.ldls.length,
+                Math.ceil(exceso * porcentaje)
+            );
+
+            for (let i = 0; i < objetivo; i++) {
+                const ldl = zona.ldls[i];
+                zona.endotelio.segmentos[zona.indice].acumularGrasa(1.5);
+                ldl.state = "absorbido";
+                ldl.mass = 0;
+            }
+
+            const inicioDescarte = objetivo;
+            const porcentajeDescarte = 0.30;
+            const descartados = Math.min(
+                zona.ldls.length - inicioDescarte,
+                Math.ceil(exceso * porcentajeDescarte)
+            );
+
+            for (let i = inicioDescarte; i < inicioDescarte + descartados; i++) {
+                const ldl = zona.ldls[i];
+                ldl.state = "absorbido";
+                ldl.mass = 0;
+            }
+        }
     }
 
     processPresionImpactos() {

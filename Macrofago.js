@@ -9,7 +9,7 @@ class Macrofago extends Agent2D {
         this.maxSpeedObjetivo = 3.2;
         this.maxSteeringForce = 0.15;
         this.size = 10;
-        this.radioDeteccion = 180;
+        this.radioDeteccion = 240;
         this.arrivalDist = 120;
         this.objetivo = null;
 
@@ -112,10 +112,10 @@ class Macrofago extends Agent2D {
             }
         }
 
-        if (this.esPatrullero && objetivoRegional) {
-            objetivo = objetivoRegional;
-        } else if (objetivoAsignado) {
+        if (objetivoAsignado) {
             objetivo = objetivoAsignado;
+        } else if (objetivoRegional) {
+            objetivo = objetivoRegional;
         }
 
         if (!objetivo) {
