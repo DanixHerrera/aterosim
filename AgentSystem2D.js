@@ -14,6 +14,16 @@ class AgentSystem2D {
             macrofagos: config.macrofagos ?? 3,
             celulasEspumosas: config.celulasEspumosas ?? 1
         };
+
+        this.tabaquismo = 0;
+        if (config.tabaquismo !== undefined) {
+            this.tabaquismo = config.tabaquismo;
+        }
+
+        this.oxidantesBase = this.config.oxidantes;
+        this.oxidantesMax = 30;
+        this.proteccionHDLMin = 0.3;
+        this.radioInteraccion = 12;
     }
 
     initialize() {
@@ -27,6 +37,97 @@ class AgentSystem2D {
 
         for (let i = 0; i < this.config.celulasEspumosas; i++) {
             this.addFoamCell();
+        }
+
+        this.aplicarTabaquismo(this.tabaquismo);
+    }
+
+    cantidadOxidantesDeseada() {
+        let cantidad = this.oxidantesBase
+            + (this.oxidantesMax - this.oxidantesBase) * this.tabaquismo / 100;
+
+        return Math.round(cantidad);
+    }
+
+    factorProteccionHDL() {
+        return map(this.tabaquismo, 0, 100, 1, this.proteccionHDLMin);
+    }
+
+    aplicarTabaquismo(nivel) {
+        this.tabaquismo = nivel;
+        this.ajustarOxidantes();
+    }
+
+    ajustarOxidantes() {
+        let deseados = this.cantidadOxidantesDeseada();
+        let oxidantes = this.getAgentsOfType(Oxidante);
+
+        while (oxidantes.length < deseados) {
+            let pos = this.randomLumenPosition(10);
+            this.addAgent(Oxidante, pos.x, pos.y);
+            oxidantes = this.getAgentsOfType(Oxidante);
+        }
+
+        while (oxidantes.length > deseados) {
+            let ultimo = oxidantes[oxidantes.length - 1];
+            let indice = this.agents.indexOf(ultimo);
+
+            if (indice !== -1) {
+                this.agents.splice(indice, 1);
+            }
+
+            oxidantes = this.getAgentsOfType(Oxidante);
+        }
+    }
+
+    mantenerOxidantes() {
+        let deseados = this.cantidadOxidantesDeseada();
+        let oxidantes = this.getAgentsOfType(Oxidante);
+
+        if (oxidantes.length < deseados) {
+            let faltantes = deseados - oxidantes.length;
+
+            for (let i = 0; i < faltantes; i++) {
+                let pos = this.randomLumenPosition(10);
+                this.addAgent(Oxidante, pos.x, pos.y);
+            }
+        }
+    }
+
+    procesarProteccionHDL() {
+        let hdls = this.getAgentsOfType(HDL);
+        let oxidantes = this.getAgentsOfType(Oxidante);
+        let eliminados = [];
+        let factor = this.factorProteccionHDL();
+
+        for (let i = 0; i < hdls.length; i++) {
+            let hdl = hdls[i];
+
+            for (let j = 0; j < oxidantes.length; j++) {
+                let oxidante = oxidantes[j];
+
+                if (eliminados.indexOf(oxidante) !== -1) {
+                    continue;
+                }
+
+                let distancia = p5.Vector.dist(hdl.pos, oxidante.pos);
+
+                if (distancia <= this.radioInteraccion) {
+                    if (random(1) < factor) {
+                        eliminados.push(oxidante);
+                        hdl.reaparecerIzquierda(this.arteria);
+                        break;
+                    }
+                }
+            }
+        }
+
+        for (let i = 0; i < eliminados.length; i++) {
+            let indice = this.agents.indexOf(eliminados[i]);
+
+            if (indice !== -1) {
+                this.agents.splice(indice, 1);
+            }
         }
     }
 
@@ -100,6 +201,8 @@ class AgentSystem2D {
             }
         }
 
+        this.mantenerOxidantes(); //
+        this.procesarProteccionHDL();
         this.processLDLInfiltration();
         this.processLDLOxidation();
         this.detectCollisions();
