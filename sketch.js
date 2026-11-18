@@ -74,9 +74,9 @@ function crearSimulacion() {
     sistema = new AgentSystem2D(arteria, 
         {
         globulosRojos: 25,
-        ldl: 125,
+        ldl: 100,
         hdl: 12,
-        oxidantes: 8,
+        oxidantes: 10,
         macrofagos: 20,
         celulasEspumosas: 2,
         tabaquismo: nivelTabaquismo

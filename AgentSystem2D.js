@@ -21,7 +21,7 @@ class AgentSystem2D {
         }
 
         this.oxidantesBase = this.config.oxidantes;
-        this.oxidantesMax = 30;
+        this.oxidantesMax = 60;
         this.proteccionHDLMin = 0.3;
         this.radioInteraccion = 12;
     }
