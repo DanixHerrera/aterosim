@@ -10,7 +10,7 @@ let segmentosGenerados = null;
 
 let configuracionEscenarios = {
     "escenario-saludable": {
-        cantidad: 4,
+        cantidad: 0,
         seed: 3101,
         macrofagos: 25
     },
