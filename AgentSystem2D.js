@@ -436,7 +436,7 @@ class AgentSystem2D {
                 const clave = lado + ":" + indice;
                 const cantidad = ldlsVisibles.get(clave) ?? 0;
 
-                if (cantidad >= 4) {
+                if (cantidad >= 1) {
                     continue;
                 }
 
@@ -690,7 +690,7 @@ class AgentSystem2D {
             }
 
             const exceso = ldlsOxidados.length - 100;
-            const porcentaje = 0.20;
+            const porcentaje = 0.40;
             const objetivo = Math.min(
                 zona.ldls.length,
                 Math.ceil(exceso * porcentaje)
@@ -704,7 +704,7 @@ class AgentSystem2D {
             }
 
             const inicioDescarte = objetivo;
-            const porcentajeDescarte = 0.30;
+            const porcentajeDescarte = 0.35;
             const descartados = Math.min(
                 zona.ldls.length - inicioDescarte,
                 Math.ceil(exceso * porcentajeDescarte)
