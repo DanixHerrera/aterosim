@@ -6,15 +6,17 @@ class LDL extends Agent2D {
         this.vel = createVector(random(0.8, 1.4), 0);
         this.maxSpeed = 1.4;
         this.size = 7;
+        this.r = this.size;
         this.state = estado;
     }
 
     update(velocidadFlujo) {
-        if (this.state === "oxidado") {
+        if (this.state === "infiltrado" || this.state === "oxidado") {
             this.vel.set(0, 0);
             this.acc.set(0, 0);
             return;
         }
+
         super.update(velocidadFlujo);
     }
 
