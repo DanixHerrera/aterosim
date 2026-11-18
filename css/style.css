@@ -5,6 +5,7 @@
 }
 
 body {
+    font-family: Helvetica;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -28,12 +29,12 @@ body {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    width: 320px;
+    width: 420px;
     max-width: 100%;
     padding: 12px 14px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.92);
-    color: #222222;
+    border-radius: 5px;
+    /*background: rgba(255, 255, 255, 0.7);*/
+    color: #ffffff;
     font-size: 14px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
 }
@@ -52,7 +53,7 @@ body {
 .fila-slider input[type="range"] {
     flex: 1;
     min-width: 0;
-    accent-color: #2f6fd0;
+    accent-color: #FF6B6B;
 }
 
 .fila-slider label {
@@ -101,7 +102,7 @@ body {
 }
 
 .toggle input:checked + .toggle-pista {
-    background: #2f6fd0;
+    background: #FF6B6B;
 }
 
 .toggle input:checked + .toggle-pista::before {
