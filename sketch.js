@@ -1,11 +1,51 @@
 
 let arteria;
 let sistema;
+let nivelTabaquismo = 0;
 
 function setup() {
     createCanvas(windowWidth, windowHeight);
 
     crearSimulacion();
+    configurarControles();
+}
+
+function configurarControles() {
+    let slider = document.getElementById("tabaquismo");
+    slider.addEventListener("input", actualizarTabaquismo);
+    actualizarTabaquismo();
+}
+
+function actualizarTabaquismo() {
+    let slider = document.getElementById("tabaquismo");
+    nivelTabaquismo = parseInt(slider.value, 10);
+
+    document.getElementById("tabaquismo-valor").textContent = nivelTabaquismo;
+
+    if (sistema) {
+        sistema.aplicarTabaquismo(nivelTabaquismo);
+    }
+}
+
+function actualizarContadores() {
+    if (!sistema) {
+        return;
+    }
+
+    let oxidantes = sistema.getAgentsOfType(Oxidante).length;
+    let hdl = sistema.getAgentsOfType(HDL).length;
+    let ldls = sistema.getAgentsOfType(LDL);
+    let oxidados = 0;
+
+    for (let i = 0; i < ldls.length; i++) {
+        if (ldls[i].state === "oxidado") {
+            oxidados = oxidados + 1;
+        }
+    }
+
+    document.getElementById("contador-oxidantes").textContent = oxidantes;
+    document.getElementById("contador-hdl").textContent = hdl;
+    document.getElementById("contador-ldl-oxidados").textContent = oxidados;
 }
 
 function crearSimulacion() {
@@ -17,8 +57,9 @@ function crearSimulacion() {
         ldl: 25,
         hdl: 12,
         oxidantes: 8,
-        macrofagos: 6,
-        celulasEspumosas: 2
+        macrofagos: 20,
+        celulasEspumosas: 2,
+        tabaquismo: nivelTabaquismo
     });
 
     sistema.initialize();
@@ -55,6 +96,7 @@ function draw() {
 
     sistema.update();
     sistema.display();
+    actualizarContadores();
 }
 
 function windowResized() {

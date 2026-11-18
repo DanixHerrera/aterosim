@@ -11,3 +11,37 @@ body {
     min-height: 100vh;
     background: #f0f0f0;
 }
+
+#panel {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 240px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.92);
+    color: #222222;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+#panel input[type="range"] {
+    width: 100%;
+    accent-color: #2f6fd0;
+}
+
+#panel label {
+    font-size: 14px;
+}
+
+#panel .contadores {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 13px;
+    color: #333333;
+}
