@@ -6,15 +6,54 @@ class LDL extends Agent2D {
         this.vel = createVector(random(0.8, 1.4), 0);
         this.maxSpeed = 1.4;
         this.size = 7;
+        this.r = this.size;
         this.state = estado;
     }
 
     update(velocidadFlujo) {
-        if (this.state === "oxidado") {
+        if (this.state === "infiltrado" || this.state === "oxidado") {
             this.vel.set(0, 0);
             this.acc.set(0, 0);
+
+            if (this.arteria) {
+                const a = this.arteria;
+                const xLocal = constrain(this.pos.x - a.xInicio, 0, a.ancho);
+                const lado = a.paredMasCercana(this.pos);
+                let centroIntima;
+                let limiteExterior;
+                let limiteInterior;
+
+                if (lado === "superior") {
+                    centroIntima = a.yLumenSuperior - a.intima.distanciaLumen
+                        + a.intima.offsetEn(xLocal);
+                    limiteExterior = centroIntima - a.intima.grosor / 2 - this.size;
+                    limiteInterior = centroIntima + a.intima.grosor / 2 + this.size;
+                    if (this.pos.y < limiteExterior) {
+                        this.pos.y = limiteExterior;
+                        this.vel.y = abs(this.vel.y);
+                    }
+                } else {
+                    centroIntima = a.yLumenInferior + a.intima.distanciaLumen
+                        + a.intima.offsetEn(xLocal);
+                    limiteExterior = centroIntima + a.intima.grosor / 2 + this.size;
+                    limiteInterior = centroIntima - a.intima.grosor / 2 - this.size;
+                    if (this.pos.y > limiteExterior) {
+                        this.pos.y = limiteExterior;
+                        this.vel.y = -abs(this.vel.y);
+                    }
+                }
+
+                if (this.pos.x < a.xInicio + this.size) {
+                    this.pos.x = a.xInicio + this.size;
+                    this.vel.x = abs(this.vel.x);
+                } else if (this.pos.x > a.xInicio + a.ancho - this.size) {
+                    this.pos.x = a.xInicio + a.ancho - this.size;
+                    this.vel.x = -abs(this.vel.x);
+                }
+            }
             return;
         }
+
         super.update(velocidadFlujo);
     }
 

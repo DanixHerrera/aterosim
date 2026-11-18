@@ -5,7 +5,10 @@ class CelulaEspumosa extends Macrofago {
         super(x, y);
 
         this.state = "espumosa";
-        this.size = 22;
+        this.size = 12;
+        this.vel.set(0, 0);
+        this.r = 0;
+        this.segmento = null;
     }
 
     // La célula espumosa permanece en la íntima
@@ -18,11 +21,12 @@ class CelulaEspumosa extends Macrofago {
     display() {
         push();
         translate(this.pos.x, this.pos.y);
+        scale(this.size / 22);
 
         noStroke();
 
         fill(90, 60, 30, 45);
-        ellipse(2, 3, this.size * 2.2, this.size * 1.9);
+        ellipse(2, 3, 22 * 2.2, 22 * 1.9);
 
         fill(160, 100, 40);
         beginShape();
@@ -30,7 +34,7 @@ class CelulaEspumosa extends Macrofago {
         for (let i = 0; i < 14; i++) {
             let angulo = TWO_PI * i / 14;
             let variacion = (i % 2 === 0) ? 1 : 0.84;
-            let radio = this.size * variacion;
+            let radio = 22 * variacion;
 
             vertex(cos(angulo) * radio, sin(angulo) * radio);
         }
@@ -38,7 +42,7 @@ class CelulaEspumosa extends Macrofago {
         endShape(CLOSE);
 
         fill(225, 170, 95);
-        ellipse(0, 0, this.size * 1.6, this.size * 1.4);
+        ellipse(0, 0, 22 * 1.6, 22 * 1.4);
 
         fill(255, 224, 145);
         circle(-9, -7, 9);

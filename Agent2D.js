@@ -56,7 +56,14 @@ class Agent2D {
         this.lastPos.x = this.pos.x;
         this.lastPos.y = this.pos.y;
         this.vel.add(this.acc);
-        this.vel.limit(this.maxSpeed);
+        let factorVelocidad = 1;
+        if (this.arteria) {
+            let presion = this.arteria.presionArterial ?? 120;
+            factorVelocidad = presion >= 120
+                ? map(presion, 120, 200, 1, 1.35)
+                : map(presion, 80, 120, 0.90, 1);
+        }
+        this.vel.limit(this.maxSpeed * factorVelocidad);
         this.pos.add(this.vel);
         this.acc.mult(0);
         this.borders();
@@ -192,16 +199,35 @@ class Agent2D {
     }
 
     limitesLumen (arteria) {
-        return {
-            top: arteria.yLumenSuperior + arteria.altoEndotelio + this.size,
-            bottom: arteria.yLumenInferior - arteria.altoEndotelio - this.size
-        };
+        let xLocal = this.pos.x - arteria.xInicio;
+        let offsetSuperior = arteria.endotelioSuperior.offsetEn(xLocal);
+        let offsetInferior = arteria.endotelioInferior.offsetEn(xLocal);
+        let placaSuperior = arteria.endotelioSuperior.placaEn(xLocal);
+        let placaInferior = arteria.endotelioInferior.placaEn(xLocal);
+
+        let top = arteria.yLumenSuperior + arteria.altoEndotelio + this.size + offsetSuperior + placaSuperior;
+        let bottom = arteria.yLumenInferior - arteria.altoEndotelio - this.size + offsetInferior - placaInferior;
+
+        if (top > bottom) {
+            let medio = (top + bottom) / 2;
+            top = medio;
+            bottom = medio;
+        }
+
+        return { top: top, bottom: bottom };
     }
 
     seguirFlujo(arteria, velocidadFlujo) {
-        let radio = arteria.altoLumen / 2;
-        let d = (this.pos.y - arteria.y) / radio;
-        let desired = createVector(velocidadFlujo * (1 - d * d), 0);
+        let xLocal = this.pos.x - arteria.xInicio;
+        let offsetSuperior = arteria.endotelioSuperior.offsetEn(xLocal);
+        let offsetInferior = arteria.endotelioInferior.offsetEn(xLocal);
+        let paredSuperior = arteria.yLumenSuperior + arteria.altoEndotelio + offsetSuperior;
+        let paredInferior = arteria.yLumenInferior - arteria.altoEndotelio + offsetInferior;
+        let centroY = (paredSuperior + paredInferior) / 2;
+        let radio = (paredInferior - paredSuperior) / 2;
+        let d = (this.pos.y - centroY) / radio;
+        let factorPresion = arteria.factorPresion ?? 1;
+        let desired = createVector(velocidadFlujo * factorPresion * (1 - d * d), 0);
         let steering = p5.Vector.sub(desired, this.vel);
         steering.mult(this.coefflujo);
         this.applyGravity(steering);
@@ -224,8 +250,13 @@ class Agent2D {
     }
 
     reaparecerIzquierda(arteria) {
-        let limites = this.limitesLumen(arteria);
         this.pos.x = arteria.xInicio - this.size;
+        let limites = this.limitesLumen(arteria);
         this.pos.y = random(limites.top, limites.bottom);
+    }
+
+    touch(a) {
+        let dif = p5.Vector.sub(a.pos, this.pos)
+        return dif.mag() < this.r + a.r
     }
 }
