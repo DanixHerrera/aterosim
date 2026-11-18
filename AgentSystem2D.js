@@ -20,13 +20,13 @@ class AgentSystem2D {
             this.tabaquismo = config.tabaquismo;
         }
 
-        this.presionArterial = 120;
+        this.presionArterial = 115;
         if (config.presionArterial !== undefined) {
             this.presionArterial = config.presionArterial;
         }
 
-        this.ldlMg = 100;
-        this.hdlMg = 55;
+        this.ldlMg = 90;
+        this.hdlMg = 60;
         if (config.ldlMg !== undefined) {
             this.ldlMg = config.ldlMg;
         }
@@ -62,11 +62,11 @@ class AgentSystem2D {
     }
 
     factorPresionArterial() {
-        if (this.presionArterial < 120) {
-            return map(this.presionArterial, 80, 120, 0.75, 1);
+        if (this.presionArterial < 115) {
+            return map(this.presionArterial, 80, 115, 0.75, 1);
         }
 
-        return map(this.presionArterial, 120, 200, 1, 1.8);
+        return map(this.presionArterial, 115, 200, 1, 1.8);
     }
 
     aplicarPresionArterial(nivel) {
@@ -76,8 +76,8 @@ class AgentSystem2D {
     }
 
     aplicarLDL(nivel) {
-        this.ldlMg = constrain(nivel, 70, 220);
-        let deseados = round(map(this.ldlMg, 70, 220, 25, 140));
+        this.ldlMg = constrain(nivel, 50, 220);
+        let deseados = round(map(this.ldlMg, 50, 220, 25, 140));
         this.ajustarLDL(deseados);
     }
 
@@ -135,7 +135,7 @@ class AgentSystem2D {
     }
 
     mantenerLDL() {
-        let deseados = round(map(this.ldlMg, 70, 220, 25, 140));
+        let deseados = round(map(this.ldlMg, 50, 220, 25, 140));
         this.ajustarLDL(deseados);
     }
 
@@ -156,7 +156,7 @@ class AgentSystem2D {
         }
 
         let factorDano = map(segmento.desgaste, 0.3, 1, 0.06, 0.18);
-        let factorLDL = map(this.ldlMg, 70, 220, 0.75, 1.30);
+        let factorLDL = map(this.ldlMg, 50, 220, 0.75, 1.30);
         let factorPresion = map(this.presionArterial, 80, 200, 0.75, 1.30);
         let factorTabaquismo = map(this.tabaquismo, 0, 100, 1, 1.25);
         let factorHDL = map(this.hdlMg, 20, 100, 1.20, 0.80);
@@ -425,7 +425,8 @@ class AgentSystem2D {
                 celulasVisibles.set(segmento, cantidad + 1);
             }
 
-            if (agent instanceof LDL && agent.state === "oxidado") {
+            if (agent instanceof LDL
+                && (agent.state === "infiltrado" || agent.state === "oxidado")) {
                 const lado = this.arteria.paredMasCercana(agent.pos);
                 const endotelio = lado === "inferior"
                     ? this.arteria.endotelioInferior
@@ -435,7 +436,7 @@ class AgentSystem2D {
                 const clave = lado + ":" + indice;
                 const cantidad = ldlsVisibles.get(clave) ?? 0;
 
-                if (cantidad >= 2) {
+                if (cantidad >= 3) {
                     continue;
                 }
 
@@ -663,12 +664,12 @@ class AgentSystem2D {
     }
 
     processPresionImpactos() {
-            if (this.presionArterial <= 120) {
+            if (this.presionArterial <= 115) {
                 return;
             }
 
-            const exceso = this.presionArterial - 120;
-            const factorImpacto = exceso / 80;
+            const exceso = this.presionArterial - 115;
+            const factorImpacto = exceso / 85;
 
             for (const agent of this.agents) {
                 if (this.isStatic(agent) || (agent instanceof LDL && agent.state !== "normal")) {

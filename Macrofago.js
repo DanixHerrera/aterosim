@@ -17,6 +17,9 @@ class Macrofago extends Agent2D {
         this.ldlAbsorbidos = 0;
         this.margenAbsorcion = 4;
         this.inIntima = false;
+        this.regionAsignada = floor(random(0, 4));
+        this.esPatrullero = random(1) < 0.1;
+        this.tiempoSinObjetivo = 0;
 
         this.state = "normal";
     }
@@ -36,6 +39,8 @@ class Macrofago extends Agent2D {
         ldl.state = "absorbido";
         ldl.mass = 0;
         this.ldlAbsorbidos++;
+        this.inIntima = false;
+        this.tiempoSinObjetivo = 0;
 
         if (this.arteria) {
             const lado = this.arteria.paredMasCercana(this.pos);
@@ -66,6 +71,11 @@ class Macrofago extends Agent2D {
 
         let objetivo = null;
         let distanciaMinima = this.radioDeteccion;
+        let objetivoAsignado = null;
+        let distanciaAsignada = Infinity;
+        let objetivoRegional = null;
+        let distanciaRegional = Infinity;
+
         for (const ldl of ldls) {
             if (ldl.state !== "oxidado") {
                 continue;
@@ -73,11 +83,49 @@ class Macrofago extends Agent2D {
             if (ldl.reservadoPor && ldl.reservadoPor !== this) {
                 continue;
             }
+            if (ldl.pos.x < this.pos.x - 8 && !this.inIntima) {
+                continue;
+            }
             const distancia = p5.Vector.dist(this.pos, ldl.pos);
             if (distancia <= distanciaMinima) {
                 distanciaMinima = distancia;
                 objetivo = ldl;
             }
+
+            const regionLDL = this.arteria
+                ? floor(constrain(
+                    (ldl.pos.x - this.arteria.xInicio) / (this.arteria.ancho / 4),
+                    0,
+                    3
+                ))
+                : -1;
+
+            if (regionLDL === this.regionAsignada
+                && distancia < distanciaAsignada) {
+                distanciaAsignada = distancia;
+                objetivoAsignado = ldl;
+            }
+
+            if (this.esPatrullero && distancia < distanciaRegional) {
+                distanciaRegional = distancia;
+                objetivoRegional = ldl;
+            }
+        }
+
+        if (this.esPatrullero && objetivoRegional) {
+            objetivo = objetivoRegional;
+        } else if (objetivoAsignado) {
+            objetivo = objetivoAsignado;
+        }
+
+        if (!objetivo) {
+            this.tiempoSinObjetivo++;
+            if (this.tiempoSinObjetivo >= 180) {
+                this.regionAsignada = (this.regionAsignada + 1) % 4;
+                this.tiempoSinObjetivo = 0;
+            }
+        } else {
+            this.tiempoSinObjetivo = 0;
         }
         if (objetivo !== this.objetivo) {
             this.soltarObjetivo();
@@ -93,12 +141,32 @@ class Macrofago extends Agent2D {
         this.detectar(ldls);
         if (this.objetivo) {
             this.vel.limit(this.maxSpeedObjetivo);
-            this.arrive(this.objetivo.pos);
-            if (this.arteria && !this.arteria.dentroDelLumen(this.objetivo.pos)) {
+            let objetivoVertical = this.objetivo.pos.y;
+            let objetivoX = this.objetivo.pos.x;
+
+            if (!this.inIntima) {
+                objetivoX = max(this.pos.x + 1, objetivoX);
+                this.vel.x = max(this.vel.x, 0.8);
+            } else {
+                const distanciaIntima = p5.Vector.dist(this.pos, this.objetivo.pos);
+                if (distanciaIntima > 90) {
+                    this.objetivo.reservadoPor = null;
+                    this.objetivo = null;
+                }
+            }
+
+            if (this.objetivo) {
+                this.arrive(createVector(objetivoX, objetivoVertical));
+            }
+            if (this.arteria && this.objetivo
+                && !this.arteria.dentroDelLumen(this.objetivo.pos)) {
                 this.inIntima = true;
             }
         }
         super.update(velocidadFlujo);
+        if (!this.inIntima && this.vel.x < 0.8) {
+            this.vel.x = 0.8;
+        }
         if (this.objetivo) {
             this.absorber(this.objetivo);
         }
@@ -141,7 +209,7 @@ class Macrofago extends Agent2D {
                 this.vel.x = abs(this.vel.x);
             } else if (this.pos.x > arteria.xInicio + arteria.ancho - this.size) {
                 this.pos.x = arteria.xInicio + arteria.ancho - this.size;
-                this.vel.x = -abs(this.vel.x);
+                this.vel.x = abs(this.vel.x);
             }
             return;
         }
