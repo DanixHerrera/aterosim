@@ -6,15 +6,18 @@ class Macrofago extends Agent2D {
 
         this.vel = createVector(random(0.5, 0.9), 0);
         this.maxSpeed = 1.5;
+        this.maxSpeedObjetivo = 3.2;
         this.maxSteeringForce = 0.15;
         this.size = 10;
-        this.radioDeteccion = 100;
+        this.radioDeteccion = 240;
         this.arrivalDist = 120;
         this.objetivo = null;
 
         this.capacidadAbsorcion = 3;
         this.ldlAbsorbidos = 0;
         this.margenAbsorcion = 4;
+        this.inIntima = false;
+        this.tiempoSinObjetivo = 0;
 
         this.state = "normal";
     }
@@ -34,6 +37,9 @@ class Macrofago extends Agent2D {
         ldl.state = "absorbido";
         ldl.mass = 0;
         this.ldlAbsorbidos++;
+        this.inIntima = false;
+        this.tiempoSinObjetivo = 0;
+
         return true;
     }
 
@@ -50,8 +56,10 @@ class Macrofago extends Agent2D {
             this.state = "lleno";
             return;
         }
+
         let objetivo = null;
         let distanciaMinima = this.radioDeteccion;
+
         for (const ldl of ldls) {
             if (ldl.state !== "oxidado") {
                 continue;
@@ -59,11 +67,23 @@ class Macrofago extends Agent2D {
             if (ldl.reservadoPor && ldl.reservadoPor !== this) {
                 continue;
             }
+            if (ldl.pos.x < this.pos.x - 8 && !this.inIntima) {
+                continue;
+            }
             const distancia = p5.Vector.dist(this.pos, ldl.pos);
             if (distancia <= distanciaMinima) {
                 distanciaMinima = distancia;
                 objetivo = ldl;
             }
+        }
+
+        if (!objetivo) {
+            this.tiempoSinObjetivo++;
+            if (this.tiempoSinObjetivo >= 180) {
+                this.tiempoSinObjetivo = 0;
+            }
+        } else {
+            this.tiempoSinObjetivo = 0;
         }
         if (objetivo !== this.objetivo) {
             this.soltarObjetivo();
@@ -78,37 +98,80 @@ class Macrofago extends Agent2D {
     update(velocidadFlujo, ldls = []) {
         this.detectar(ldls);
         if (this.objetivo) {
-            this.arrive(this.objetivo.pos);
+            let limiteVelocidad = this.inIntima
+                ? 5.5
+                : this.maxSpeedObjetivo;
+            this.vel.limit(limiteVelocidad);
+            let objetivoVertical = this.objetivo.pos.y;
+            let objetivoX = this.objetivo.pos.x;
+
+            if (!this.inIntima) {
+                objetivoX = max(this.pos.x + 1, objetivoX);
+                this.vel.x = max(this.vel.x, 0.8);
+            } else {
+                const distanciaIntima = p5.Vector.dist(this.pos, this.objetivo.pos);
+                if (distanciaIntima > 90) {
+                    this.objetivo.reservadoPor = null;
+                    this.objetivo = null;
+                }
+            }
+
+            if (this.objetivo) {
+                this.arrive(createVector(objetivoX, objetivoVertical));
+            }
+            if (this.arteria && this.objetivo
+                && !this.arteria.dentroDelLumen(this.objetivo.pos)) {
+                this.inIntima = true;
+            }
         }
         super.update(velocidadFlujo);
+        if (!this.inIntima && this.vel.x < 0.8) {
+            this.vel.x = 0.8;
+        }
         if (this.objetivo) {
             this.absorber(this.objetivo);
         }
-    }
 
-    puedeCruzarEndotelio() {
-        if (!this.objetivo || !this.arteria) {
-            return false;
+        if (!this.objetivo && this.arteria
+            && !this.arteria.dentroDelLumen(this.pos)) {
+            super.limitarAlLumen(this.arteria);
         }
-        const a = this.arteria;
-        if (a.dentroDelLumen(this.objetivo.pos)) {
-            return false;
-        }
-        let endotelio = a.endotelioSuperior;
-        if (a.paredMasCercana(this.objetivo.pos) === "inferior") {
-            endotelio = a.endotelioInferior;
-        }
-        const indice = endotelio.indiceEn(this.pos.x - a.xInicio);
-        for (let i = indice - 1; i <= indice + 1; i++) {
-            if (i >= 0 && i < endotelio.segmentos.length && endotelio.segmentos[i].isDamage()) {
-                return true;
-            }
-        }
-        return false;
     }
 
     limitarAlLumen(arteria) {
-        if (this.puedeCruzarEndotelio()) {
+        if (this.inIntima && this.objetivo) {
+            const xLocal = constrain(this.pos.x - arteria.xInicio, 0, arteria.ancho);
+            const lado = arteria.paredMasCercana(this.objetivo.pos);
+            let centroIntima;
+            let limiteExterior;
+
+            if (lado === "superior") {
+                centroIntima = arteria.yLumenSuperior - arteria.intima.distanciaLumen
+                    + arteria.intima.offsetEn(xLocal);
+                limiteExterior = centroIntima - arteria.intima.grosor / 2 - this.size;
+
+                if (this.pos.y < limiteExterior) {
+                    this.pos.y = limiteExterior;
+                    this.vel.y = abs(this.vel.y);
+                }
+            } else {
+                centroIntima = arteria.yLumenInferior + arteria.intima.distanciaLumen
+                    + arteria.intima.offsetEn(xLocal);
+                limiteExterior = centroIntima + arteria.intima.grosor / 2 + this.size;
+
+                if (this.pos.y > limiteExterior) {
+                    this.pos.y = limiteExterior;
+                    this.vel.y = -abs(this.vel.y);
+                }
+            }
+
+            if (this.pos.x < arteria.xInicio + this.size) {
+                this.pos.x = arteria.xInicio + this.size;
+                this.vel.x = abs(this.vel.x);
+            } else if (this.pos.x > arteria.xInicio + arteria.ancho - this.size) {
+                this.pos.x = arteria.xInicio + arteria.ancho - this.size;
+                this.vel.x = abs(this.vel.x);
+            }
             return;
         }
         super.limitarAlLumen(arteria);

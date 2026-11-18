@@ -46,7 +46,12 @@ class Endotelio {
             let celulas = this.segmentos[i].celulasEspumosas;
             let celulasIzquierda = i > 0 ? this.segmentos[i - 1].celulasEspumosas : 0;
             let celulasDerecha = i < cantidad - 1 ? this.segmentos[i + 1].celulasEspumosas : 0;
-            this.segmentos[i].placaAltura = this.alturaPorCelula * (celulas + 0.5 * (celulasIzquierda + celulasDerecha));
+            let grasa = this.segmentos[i].grasaAcumulada;
+            let placaCelular = this.alturaPorCelula * (
+                celulas + 0.5 * (celulasIzquierda + celulasDerecha)
+            );
+
+            this.segmentos[i].placaAltura = placaCelular + grasa;
         }
 
         this.placaIzquierda = [];
@@ -91,6 +96,16 @@ class Endotelio {
 
     placaEn(x) {
         return this.interpolar(x, this.placaIzquierda, this.placaDerecha);
+    }
+
+    hayCelulaEspumosaCercana(indice, radio = 3) {
+        for (let i = indice - radio; i <= indice + radio; i++) {
+            if (i >= 0 && i < this.segmentos.length
+                && this.segmentos[i].celulasEspumosas > 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     interpolar(x, valoresIzquierda, valoresDerecha) {

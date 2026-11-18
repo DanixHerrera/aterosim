@@ -5,6 +5,7 @@ class Segmento {
         this.desgaste = 0;
         this.celulasEspumosas = 0;
         this.placaAltura = 0;
+        this.grasaAcumulada = 0;
 
         if (estado === "dañado") {
             this.desgaste = 1;
@@ -47,6 +48,10 @@ class Segmento {
 
     setDesgaste(valor) {
         this.desgaste = constrain(valor, 0, 1);
+    }
+
+    acumularGrasa(cantidad) {
+        this.grasaAcumulada = constrain(this.grasaAcumulada + cantidad, 0, 40);
     }
 
     damage() {
