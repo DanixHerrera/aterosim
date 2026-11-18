@@ -29,7 +29,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    width: 420px;
+    width: fit-content;
     max-width: 100%;
     padding: 12px 14px;
     border-radius: 5px;

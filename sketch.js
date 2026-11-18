@@ -2,6 +2,80 @@
 let arteria;
 let sistema;
 let nivelTabaquismo = 0;
+let presionArterial = 120;
+let nivelLDL = 100;
+let nivelHDL = 55;
+let escenarioActivo = "escenario-saludable";
+
+let configuracionEscenarios = {
+    "escenario-saludable": {
+        segmentos: [
+            { pared: "superior", indice: 3 },
+            { pared: "superior", indice: 7 },
+            { pared: "superior", indice: 21 },
+            { pared: "superior", indice: 36 },
+            { pared: "superior", indice: 68 },
+            { pared: "inferior", indice: 5 },
+            { pared: "inferior", indice: 16 },
+            { pared: "inferior", indice: 43 },
+            { pared: "inferior", indice: 79 }
+        ],
+        macrofagos: 25
+    },
+    "escenario-ldl-alto": {
+        segmentos: [
+            { pared: "superior", indice: 8 },
+            { pared: "superior", indice: 12 },
+            { pared: "superior", indice: 31 },
+            { pared: "superior", indice: 48 },
+            { pared: "superior", indice: 61 },
+            { pared: "superior", indice: 75 },
+            { pared: "superior", indice: 88 },
+            { pared: "inferior", indice: 17 },
+            { pared: "inferior", indice: 35 },
+            { pared: "inferior", indice: 52 },
+            { pared: "inferior", indice: 67 },
+            { pared: "inferior", indice: 82 },
+            { pared: "inferior", indice: 94 }
+        ],
+        macrofagos: 45
+    },
+    "escenario-hipertension": {
+        segmentos: [
+            { pared: "superior", indice: 6 },
+            { pared: "superior", indice: 14 },
+            { pared: "superior", indice: 29 },
+            { pared: "superior", indice: 44 },
+            { pared: "superior", indice: 58 },
+            { pared: "superior", indice: 71 },
+            { pared: "superior", indice: 89 },
+            { pared: "inferior", indice: 9 },
+            { pared: "inferior", indice: 21 },
+            { pared: "inferior", indice: 38 },
+            { pared: "inferior", indice: 54 },
+            { pared: "inferior", indice: 63 },
+            { pared: "inferior", indice: 82 },
+            { pared: "inferior", indice: 96 }
+        ],
+        macrofagos: 40
+    },
+    "escenario-fumador": {
+        segmentos: [
+            { pared: "superior", indice: 4 },
+            { pared: "superior", indice: 18 },
+            { pared: "superior", indice: 37 },
+            { pared: "superior", indice: 66 },
+            { pared: "superior", indice: 84 },
+            { pared: "superior", indice: 94 },
+            { pared: "inferior", indice: 11 },
+            { pared: "inferior", indice: 27 },
+            { pared: "inferior", indice: 49 },
+            { pared: "inferior", indice: 73 },
+            { pared: "inferior", indice: 91 }
+        ],
+        macrofagos: 50
+    }
+};
 
 function setup() {
     createCanvas(windowWidth, windowHeight);
@@ -15,13 +89,20 @@ function configurarControles() {
     tabaquismo.addEventListener("input", actualizarTabaquismo);
     actualizarTabaquismo();
 
-    let idsDummy = ["presion-arterial", "ldl", "hdl"];
+    let presion = document.getElementById("presion-arterial");
+    presion.addEventListener("input", actualizarPresionArterial);
+    actualizarPresionArterial();
 
-    for (let i = 0; i < idsDummy.length; i++) {
-        let slider = document.getElementById(idsDummy[i]);
-        slider.addEventListener("input", actualizarSliderDummy);
-        mostrarValorSlider(slider);
-    }
+    let ldl = document.getElementById("ldl");
+    ldl.addEventListener("input", actualizarLDL);
+
+    let hdl = document.getElementById("hdl");
+    hdl.addEventListener("input", actualizarHDL);
+
+    actualizarLDL();
+    actualizarHDL();
+
+    configurarEscenarios();
 }
 
 function mostrarValorSlider(slider) {
@@ -32,19 +113,131 @@ function mostrarValorSlider(slider) {
     }
 }
 
-function actualizarSliderDummy(evento) {
-    mostrarValorSlider(evento.target);
-}
-
 function actualizarTabaquismo() {
     let slider = document.getElementById("tabaquismo");
     nivelTabaquismo = parseInt(slider.value, 10);
 
     document.getElementById("tabaquismo-valor").textContent = nivelTabaquismo;
+    if (arguments.length > 0) {
+        desactivarEscenarios();
+    }
 
     if (sistema) {
         sistema.aplicarTabaquismo(nivelTabaquismo);
     }
+}
+
+function actualizarPresionArterial() {
+    let slider = document.getElementById("presion-arterial");
+    presionArterial = parseInt(slider.value, 10);
+
+    document.getElementById("presion-arterial-valor").textContent = presionArterial;
+    if (arguments.length > 0) {
+        desactivarEscenarios();
+    }
+
+    if (sistema) {
+        sistema.aplicarPresionArterial(presionArterial);
+    }
+}
+
+function actualizarLDL() {
+    let slider = document.getElementById("ldl");
+    nivelLDL = parseInt(slider.value, 10);
+    document.getElementById("ldl-valor").textContent = nivelLDL;
+    if (arguments.length > 0) {
+        desactivarEscenarios();
+    }
+
+    if (sistema) {
+        sistema.aplicarLDL(nivelLDL);
+    }
+}
+
+function actualizarHDL() {
+    let slider = document.getElementById("hdl");
+    nivelHDL = parseInt(slider.value, 10);
+    document.getElementById("hdl-valor").textContent = nivelHDL;
+    if (arguments.length > 0) {
+        desactivarEscenarios();
+    }
+
+    if (sistema) {
+        sistema.aplicarHDL(nivelHDL);
+    }
+}
+
+function desactivarEscenarios() {
+    let ids = [
+        "escenario-saludable",
+        "escenario-ldl-alto",
+        "escenario-hipertension",
+        "escenario-fumador"
+    ];
+
+    for (let i = 0; i < ids.length; i++) {
+        document.getElementById(ids[i]).checked = false;
+    }
+
+    escenarioActivo = null;
+}
+
+function configurarEscenarios() {
+    let ids = [
+        "escenario-saludable",
+        "escenario-ldl-alto",
+        "escenario-hipertension",
+        "escenario-fumador"
+    ];
+
+    for (let i = 0; i < ids.length; i++) {
+        document.getElementById(ids[i]).addEventListener("change", seleccionarEscenario);
+    }
+}
+
+function seleccionarEscenario(evento) {
+    if (!evento.target.checked) {
+        return;
+    }
+
+    let ids = [
+        "escenario-saludable",
+        "escenario-ldl-alto",
+        "escenario-hipertension",
+        "escenario-fumador"
+    ];
+
+    for (let i = 0; i < ids.length; i++) {
+        if (ids[i] !== evento.target.id) {
+            document.getElementById(ids[i]).checked = false;
+        }
+    }
+
+    let escenarios = {
+        "escenario-saludable": { tabaquismo: 0, presion: 120, ldl: 100, hdl: 55 },
+        "escenario-ldl-alto": { tabaquismo: 0, presion: 120, ldl: 190, hdl: 55 },
+        "escenario-hipertension": { tabaquismo: 0, presion: 160, ldl: 100, hdl: 55 },
+        "escenario-fumador": { tabaquismo: 100, presion: 120, ldl: 100, hdl: 45 }
+    };
+
+    let valores = escenarios[evento.target.id];
+    escenarioActivo = evento.target.id;
+    document.getElementById("tabaquismo").value = valores.tabaquismo;
+    document.getElementById("presion-arterial").value = valores.presion;
+    document.getElementById("ldl").value = valores.ldl;
+    document.getElementById("hdl").value = valores.hdl;
+
+    nivelTabaquismo = valores.tabaquismo;
+    presionArterial = valores.presion;
+    nivelLDL = valores.ldl;
+    nivelHDL = valores.hdl;
+
+    document.getElementById("tabaquismo-valor").textContent = nivelTabaquismo;
+    document.getElementById("presion-arterial-valor").textContent = presionArterial;
+    document.getElementById("ldl-valor").textContent = nivelLDL;
+    document.getElementById("hdl-valor").textContent = nivelHDL;
+
+    crearSimulacion();
 }
 
 function actualizarContadores() {
@@ -69,18 +262,88 @@ function actualizarContadores() {
     document.getElementById("contador-estenosis").textContent = arteria.estenosisMaxima().toFixed(1);
 }
 
+function cantidadLDL(nivel) {
+    return round(map(nivel, 70, 220, 25, 140));
+}
+
+function cantidadHDL(nivel) {
+    return round(map(nivel, 20, 100, 4, 30));
+}
+
+function configuracionArteriaActual() {
+    if (escenarioActivo) {
+        let configuracion = configuracionEscenarios[escenarioActivo];
+        return {
+            indicesDanados: configuracion.segmentos,
+            macrofagos: configuracion.macrofagos
+        };
+    }
+
+    let indices = [
+        { pared: "superior", indice: 3 },
+        { pared: "superior", indice: 7 },
+        { pared: "superior", indice: 21 },
+        { pared: "superior", indice: 36 },
+        { pared: "superior", indice: 68 },
+        { pared: "inferior", indice: 5 },
+        { pared: "inferior", indice: 16 },
+        { pared: "inferior", indice: 43 },
+        { pared: "inferior", indice: 79 }
+    ];
+
+    let macrofagos = 25;
+
+    if (nivelLDL >= 160) {
+        macrofagos = macrofagos + 20;
+        indices = indices.concat([
+            { pared: "superior", indice: 31 },
+            { pared: "superior", indice: 48 },
+            { pared: "inferior", indice: 35 },
+            { pared: "inferior", indice: 67 }
+        ]);
+    }
+
+    if (presionArterial >= 160) {
+        indices = indices.concat([
+            { pared: "superior", indice: 14 },
+            { pared: "superior", indice: 58 },
+            { pared: "inferior", indice: 21 },
+            { pared: "inferior", indice: 63 }
+        ]);
+        macrofagos = macrofagos + 15;
+    }
+
+    if (nivelTabaquismo >= 70) {
+        indices = indices.concat([
+            { pared: "superior", indice: 84 },
+            { pared: "inferior", indice: 49 },
+            { pared: "inferior", indice: 91 }
+        ]);
+        macrofagos = macrofagos + 15;
+    }
+
+    return {
+        indicesDanados: indices,
+        macrofagos: macrofagos
+    };
+}
+
 function crearSimulacion() {
-    arteria = new Arteria(width / 2, height / 2);
+    let configuracion = configuracionArteriaActual();
+    arteria = new Arteria(width / 2, height / 2, configuracion);
 
     sistema = new AgentSystem2D(arteria, 
         {
         globulosRojos: 25,
-        ldl: 100,
-        hdl: 12,
+        ldl: cantidadLDL(nivelLDL),
+        hdl: cantidadHDL(nivelHDL),
         oxidantes: 10,
-        macrofagos: 20,
+        macrofagos: configuracion.macrofagos,
         celulasEspumosas: 0,
-        tabaquismo: nivelTabaquismo
+        tabaquismo: nivelTabaquismo,
+        presionArterial: presionArterial,
+        ldlMg: nivelLDL,
+        hdlMg: nivelHDL
     });
 
     sistema.initialize();

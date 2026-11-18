@@ -1,5 +1,5 @@
 class Arteria {
-    constructor(x, y) {
+    constructor(x, y, configuracion = {}) {
         this.x = x;
         this.y = y;
         this.ancho = width;
@@ -48,11 +48,27 @@ class Arteria {
             this
         );
 
-        this.endotelioSuperior.segmentos[3].damage();
-        this.endotelioSuperior.segmentos[7].damage();
-        this.endotelioInferior.segmentos[5].damage();
+        this.configurarDanoInicial(configuracion);
 
         this.c = color("#FFC1C2");
+    }
+
+    configurarDanoInicial(configuracion) {
+        let indices = configuracion.indicesDanados;
+
+        if (!indices) {
+            return;
+        }
+
+        for (let i = 0; i < indices.length; i++) {
+            let dano = indices[i];
+            let endotelio = dano.pared === "inferior"
+                ? this.endotelioInferior
+                : this.endotelioSuperior;
+
+            let indice = constrain(dano.indice, 0, endotelio.segmentos.length - 1);
+            endotelio.segmentos[indice].damage();
+        }
     }
 
     display() {

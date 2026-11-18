@@ -20,10 +20,26 @@ class AgentSystem2D {
             this.tabaquismo = config.tabaquismo;
         }
 
+        this.presionArterial = 120;
+        if (config.presionArterial !== undefined) {
+            this.presionArterial = config.presionArterial;
+        }
+
+        this.ldlMg = 100;
+        this.hdlMg = 55;
+        if (config.ldlMg !== undefined) {
+            this.ldlMg = config.ldlMg;
+        }
+        if (config.hdlMg !== undefined) {
+            this.hdlMg = config.hdlMg;
+        }
+
         this.oxidantesBase = this.config.oxidantes;
         this.oxidantesMax = 60;
         this.proteccionHDLMin = 0.3;
         this.radioInteraccion = 12;
+        this.arteria.factorPresion = this.factorPresionArterial();
+        this.arteria.presionArterial = this.presionArterial;
     }
 
     initialize() {
@@ -40,6 +56,118 @@ class AgentSystem2D {
         }
 
         this.aplicarTabaquismo(this.tabaquismo);
+        this.aplicarPresionArterial(this.presionArterial);
+        this.aplicarLDL(this.ldlMg);
+        this.aplicarHDL(this.hdlMg);
+    }
+
+    factorPresionArterial() {
+        if (this.presionArterial < 120) {
+            return map(this.presionArterial, 80, 120, 0.75, 1);
+        }
+
+        return map(this.presionArterial, 120, 200, 1, 1.8);
+    }
+
+    aplicarPresionArterial(nivel) {
+        this.presionArterial = constrain(nivel, 80, 200);
+        this.arteria.presionArterial = this.presionArterial;
+        this.arteria.factorPresion = this.factorPresionArterial();
+    }
+
+    aplicarLDL(nivel) {
+        this.ldlMg = constrain(nivel, 70, 220);
+        let deseados = round(map(this.ldlMg, 70, 220, 25, 140));
+        this.ajustarLDL(deseados);
+    }
+
+    aplicarHDL(nivel) {
+        this.hdlMg = constrain(nivel, 20, 100);
+        let deseados = round(map(this.hdlMg, 20, 100, 4, 30));
+        this.ajustarCantidad(HDL, deseados);
+    }
+
+    ajustarCantidad(Type, deseados) {
+        let agentes = this.getAgentsOfType(Type);
+
+        while (agentes.length < deseados) {
+            let pos = this.randomLumenPosition(10);
+            this.addAgent(Type, pos.x, pos.y);
+            agentes = this.getAgentsOfType(Type);
+        }
+
+        while (agentes.length > deseados) {
+            let ultimo = agentes[agentes.length - 1];
+            let indice = this.agents.indexOf(ultimo);
+
+            if (indice !== -1) {
+                this.agents.splice(indice, 1);
+            }
+
+            agentes = this.getAgentsOfType(Type);
+        }
+    }
+
+    ajustarLDL(deseados) {
+        let ldlsNormales = this.agents.filter(agent =>
+            agent instanceof LDL && agent.state === "normal"
+        );
+
+        while (ldlsNormales.length < deseados) {
+            let pos = this.randomLumenPosition(10);
+            this.addAgent(LDL, pos.x, pos.y);
+            ldlsNormales = this.agents.filter(agent =>
+                agent instanceof LDL && agent.state === "normal"
+            );
+        }
+
+        while (ldlsNormales.length > deseados) {
+            let eliminable = ldlsNormales[ldlsNormales.length - 1];
+            let indice = this.agents.indexOf(eliminable);
+            if (indice !== -1) {
+                this.agents.splice(indice, 1);
+            }
+
+            ldlsNormales = this.agents.filter(agent =>
+                agent instanceof LDL && agent.state === "normal"
+            );
+        }
+    }
+
+    mantenerLDL() {
+        let deseados = round(map(this.ldlMg, 70, 220, 25, 140));
+        this.ajustarLDL(deseados);
+    }
+
+    calcularProbabilidadInfiltracion(segmentoSuperior, segmentoInferior) {
+        let segmento = null;
+
+        if (segmentoSuperior && segmentoSuperior.isDamage()) {
+            segmento = segmentoSuperior;
+        }
+
+        if (segmentoInferior && segmentoInferior.isDamage()
+            && (!segmento || segmentoInferior.desgaste > segmento.desgaste)) {
+            segmento = segmentoInferior;
+        }
+
+        if (!segmento) {
+            return 0;
+        }
+
+        let factorDano = map(segmento.desgaste, 0.3, 1, 0.06, 0.18);
+        let factorLDL = map(this.ldlMg, 70, 220, 0.75, 1.30);
+        let factorPresion = map(this.presionArterial, 80, 200, 0.75, 1.30);
+        let factorTabaquismo = map(this.tabaquismo, 0, 100, 1, 1.25);
+        let factorHDL = map(this.hdlMg, 20, 100, 1.20, 0.80);
+
+        let probabilidad = factorDano
+            * factorLDL
+            * factorPresion
+            * factorTabaquismo
+            * factorHDL;
+
+        return constrain(probabilidad, 0.02, 0.28);
     }
 
     cantidadOxidantesDeseada() {
@@ -50,7 +178,10 @@ class AgentSystem2D {
     }
 
     factorProteccionHDL() {
-        return map(this.tabaquismo, 0, 100, 1, this.proteccionHDLMin);
+        let factorTabaquismo = map(this.tabaquismo, 0, 100, 1, this.proteccionHDLMin);
+        let factorHDL = map(this.hdlMg, 20, 100, 0.65, 1.15);
+
+        return constrain(factorTabaquismo * factorHDL, 0.1, 1);
     }
 
     aplicarTabaquismo(nivel) {
@@ -129,6 +260,35 @@ class AgentSystem2D {
                 this.agents.splice(indice, 1);
             }
         }
+    }
+
+    mantenerMacrofagos() {
+        let macrofagos = this.agents.filter(agent =>
+            agent instanceof Macrofago && !(agent instanceof CelulaEspumosa)
+        );
+
+        while (macrofagos.length < this.config.macrofagos) {
+            let pos = this.randomLeftPosition();
+            this.addAgent(Macrofago, pos.x, pos.y);
+            macrofagos = this.agents.filter(agent =>
+                agent instanceof Macrofago && !(agent instanceof CelulaEspumosa)
+            );
+        }
+    }
+
+    randomLeftPosition(margin = 10) {
+        const a = this.arteria;
+        const x = a.xInicio - random(0, 18) - margin;
+        const xLocal = constrain(x - a.xInicio, 0, a.ancho);
+        const offsetSuperior = a.endotelioSuperior.offsetEn(xLocal);
+        const offsetInferior = a.endotelioInferior.offsetEn(xLocal);
+        const top = a.yLumenSuperior + a.altoEndotelio + margin + offsetSuperior;
+        const bottom = a.yLumenInferior - a.altoEndotelio - margin + offsetInferior;
+
+        return createVector(
+            x,
+            random(Math.min(top, bottom), Math.max(top, bottom))
+        );
     }
 
     randomLumenPosition(margin = 30) {
@@ -226,10 +386,14 @@ class AgentSystem2D {
             }
         }
 
-        this.mantenerOxidantes(); //
         this.procesarProteccionHDL();
+        this.mantenerOxidantes();
+        this.mantenerMacrofagos();
+        this.mantenerLDL();
         this.processLDLInfiltration();
         this.processLDLOxidation();
+        this.limitarLDLOxidadosPorZona();
+        this.processPresionImpactos();
         this.detectCollisions();
 
         for (const agent of this.agents) {
@@ -246,7 +410,38 @@ class AgentSystem2D {
     }
 
     display() {
+        let celulasVisibles = new Map();
+        let ldlsVisibles = new Map();
+
         for (const agent of this.agents) {
+            if (agent instanceof CelulaEspumosa) {
+                let segmento = agent.segmento;
+                let cantidad = celulasVisibles.get(segmento) ?? 0;
+
+                if (cantidad >= 1) {
+                    continue;
+                }
+
+                celulasVisibles.set(segmento, cantidad + 1);
+            }
+
+            if (agent instanceof LDL && agent.state === "oxidado") {
+                const lado = this.arteria.paredMasCercana(agent.pos);
+                const endotelio = lado === "inferior"
+                    ? this.arteria.endotelioInferior
+                    : this.arteria.endotelioSuperior;
+                const xLocal = constrain(agent.pos.x - this.arteria.xInicio, 0, this.arteria.ancho);
+                const indice = endotelio.indiceEn(xLocal);
+                const clave = lado + ":" + indice;
+                const cantidad = ldlsVisibles.get(clave) ?? 0;
+
+                if (cantidad >= 2) {
+                    continue;
+                }
+
+                ldlsVisibles.set(clave, cantidad + 1);
+            }
+
             agent.display();
         }
     }
@@ -276,6 +471,16 @@ class AgentSystem2D {
     }
 
     collision(a1, a2) {
+        if (a1 instanceof Macrofago && a1.inIntima
+            && (this.isStatic(a2) || a2 instanceof Macrofago)) {
+            return;
+        }
+
+        if (a2 instanceof Macrofago && a2.inIntima
+            && (this.isStatic(a1) || a1 instanceof Macrofago)) {
+            return;
+        }
+
         if (a1.touch(a2)) {
             let dif = p5.Vector.sub(a1.pos, a2.pos);
             if (dif.magSq() === 0)
@@ -360,13 +565,26 @@ class AgentSystem2D {
                 continue;
             }
 
+            if (ldl.infiltracionCooldown === undefined) {
+                ldl.infiltracionCooldown = 0;
+            }
+
+            if (ldl.infiltracionCooldown > 0) {
+                ldl.infiltracionCooldown--;
+                continue;
+            }
+
             const xLocal = ldl.pos.x - a.xInicio;
 
             const offsetSuperior = a.endotelioSuperior.offsetEn(xLocal);
             const offsetInferior = a.endotelioInferior.offsetEn(xLocal);
+            const placaSuperior = a.endotelioSuperior.placaEn(xLocal);
+            const placaInferior = a.endotelioInferior.placaEn(xLocal);
 
-            const paredSuperior = a.yLumenSuperior + a.altoEndotelio + offsetSuperior;
-            const paredInferior = a.yLumenInferior - a.altoEndotelio + offsetInferior;
+            const paredSuperior = a.yLumenSuperior + a.altoEndotelio
+                + offsetSuperior + placaSuperior;
+            const paredInferior = a.yLumenInferior - a.altoEndotelio
+                + offsetInferior - placaInferior;
 
             const segmentoSuperior = this.getSegmentAt(a.endotelioSuperior, ldl.pos.x);
             const segmentoInferior = this.getSegmentAt(a.endotelioInferior, ldl.pos.x);
@@ -375,15 +593,37 @@ class AgentSystem2D {
             const cercaInferior = abs(ldl.pos.y - paredInferior) <= ldl.size + 2;
 
             let infiltrado = false;
+            let probabilidad = this.calcularProbabilidadInfiltracion(
+                segmentoSuperior,
+                segmentoInferior
+            );
 
             if (cercaSuperior && segmentoSuperior && segmentoSuperior.isDamage()) {
+                if (random(1) >= probabilidad) {
+                    ldl.infiltracionCooldown = 30;
+                    continue;
+                }
+
                 ldl.pos.y = a.yLumenSuperior - a.intima.distanciaLumen
                     + this.getIntimaOffsetAt(xLocal);
+                if (!ldl.grasaRegistrada) {
+                    segmentoSuperior.acumularGrasa(1.5);
+                    ldl.grasaRegistrada = true;
+                }
 
                 infiltrado = true;
             } else if (cercaInferior && segmentoInferior && segmentoInferior.isDamage()) {
+                if (random(1) >= probabilidad) {
+                    ldl.infiltracionCooldown = 30;
+                    continue;
+                }
+
                 ldl.pos.y = a.yLumenInferior + a.intima.distanciaLumen
                     + this.getIntimaOffsetAt(xLocal);
+                if (!ldl.grasaRegistrada) {
+                    segmentoInferior.acumularGrasa(1.5);
+                    ldl.grasaRegistrada = true;
+                }
 
                 infiltrado = true;
             }
@@ -417,4 +657,78 @@ class AgentSystem2D {
             }
         }
     }
+
+    limitarLDLOxidadosPorZona() {
+        return;
+    }
+
+    processPresionImpactos() {
+            if (this.presionArterial <= 120) {
+                return;
+            }
+
+            const exceso = this.presionArterial - 120;
+            const factorImpacto = exceso / 80;
+
+            for (const agent of this.agents) {
+                if (this.isStatic(agent) || (agent instanceof LDL && agent.state !== "normal")) {
+                    continue;
+                }
+
+                if (agent.impactoCooldown === undefined) {
+                    agent.impactoCooldown = 0;
+                }
+
+                if (agent.impactoCooldown > 0) {
+                    agent.impactoCooldown--;
+                    continue;
+                }
+
+                if (agent.pos.x < this.arteria.xInicio || agent.pos.x > this.arteria.xInicio + this.arteria.ancho) {
+                    continue;
+                }
+
+                const xLocal = agent.pos.x - this.arteria.xInicio;
+                const paredSuperior = this.arteria.yLumenSuperior
+                    + this.arteria.altoEndotelio
+                    + this.arteria.endotelioSuperior.offsetEn(xLocal);
+                const paredInferior = this.arteria.yLumenInferior
+                    - this.arteria.altoEndotelio
+                    + this.arteria.endotelioInferior.offsetEn(xLocal);
+                const distanciaSuperior = abs(agent.pos.y - paredSuperior);
+                const distanciaInferior = abs(agent.pos.y - paredInferior);
+                let endotelio = null;
+
+                if (distanciaSuperior <= agent.size + 3 && distanciaSuperior <= distanciaInferior) {
+                    endotelio = this.arteria.endotelioSuperior;
+                } else if (distanciaInferior <= agent.size + 3) {
+                    endotelio = this.arteria.endotelioInferior;
+                }
+
+                if (!endotelio) {
+                    continue;
+                }
+
+                const indice = endotelio.indiceEn(xLocal);
+                const segmento = endotelio.segmentos[indice];
+                const fuerzaVelocidad = constrain(abs(agent.vel.y) + abs(agent.vel.x) * 0.15, 0.5, 2);
+                const incremento = factorImpacto * 0.006 * fuerzaVelocidad;
+
+                segmento.setDesgaste(segmento.desgaste + incremento);
+
+                for (let distancia = 1; distancia <= 2; distancia++) {
+                    const desgasteVecino = incremento * 0.6 / distancia;
+                    if (indice - distancia >= 0) {
+                        const vecino = endotelio.segmentos[indice - distancia];
+                        vecino.setDesgaste(vecino.desgaste + desgasteVecino);
+                    }
+                    if (indice + distancia < endotelio.segmentos.length) {
+                        const vecino = endotelio.segmentos[indice + distancia];
+                        vecino.setDesgaste(vecino.desgaste + desgasteVecino);
+                    }
+                }
+
+                agent.impactoCooldown = 18;
+            }
+        }
 }
