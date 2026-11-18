@@ -11,9 +11,29 @@ function setup() {
 }
 
 function configurarControles() {
-    let slider = document.getElementById("tabaquismo");
-    slider.addEventListener("input", actualizarTabaquismo);
+    let tabaquismo = document.getElementById("tabaquismo");
+    tabaquismo.addEventListener("input", actualizarTabaquismo);
     actualizarTabaquismo();
+
+    let idsDummy = ["presion-arterial", "ldl", "hdl"];
+
+    for (let i = 0; i < idsDummy.length; i++) {
+        let slider = document.getElementById(idsDummy[i]);
+        slider.addEventListener("input", actualizarSliderDummy);
+        mostrarValorSlider(slider);
+    }
+}
+
+function mostrarValorSlider(slider) {
+    let valor = document.getElementById(slider.id + "-valor");
+
+    if (valor) {
+        valor.textContent = slider.value;
+    }
+}
+
+function actualizarSliderDummy(evento) {
+    mostrarValorSlider(evento.target);
 }
 
 function actualizarTabaquismo() {

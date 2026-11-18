@@ -18,14 +18,83 @@
 
 </head>
 <body>
-    <div id="panel">
-        <input type="range" id="tabaquismo" min="0" max="100" step="1" value="0">
-        <label for="tabaquismo">Tabaquismo: <span id="tabaquismo-valor">0</span>%</label>
-        <div class="contadores">
-            <span>Oxidantes: <span id="contador-oxidantes">0</span></span>
-            <span>HDL: <span id="contador-hdl">0</span></span>
-            <span>LDL oxidados: <span id="contador-ldl-oxidados">0</span></span>
-        </div>
+    <div id="paneles">
+        <section class="panel">
+            <h2>Parámetros</h2>
+
+            <div class="fila-slider">
+                <input type="range" id="tabaquismo" min="0" max="100" step="1" value="0">
+                <label for="tabaquismo">Tabaquismo: <span id="tabaquismo-valor">0</span>%</label>
+            </div>
+
+            <div class="fila-slider">
+                <input type="range" id="presion-arterial" min="80" max="200" step="1" value="120">
+                <label for="presion-arterial">Presión arterial: <span id="presion-arterial-valor">120</span> mmHg</label>
+            </div>
+
+            <div class="fila-slider">
+                <input type="range" id="ldl" min="0" max="30" step="1" value="25">
+                <label for="ldl">LDL: <span id="ldl-valor">25</span></label>
+            </div>
+
+            <div class="fila-slider">
+                <input type="range" id="hdl" min="0" max="30" step="1" value="12">
+                <label for="hdl">HDL: <span id="hdl-valor">12</span></label>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Contadores</h2>
+
+            <div class="fila-contador">
+                <span>Oxidantes: <span id="contador-oxidantes">0</span></span>
+            </div>
+            <div class="fila-contador">
+                <span>HDL: <span id="contador-hdl">0</span></span>
+            </div>
+            <div class="fila-contador">
+                <span>LDL oxidados: <span id="contador-ldl-oxidados">0</span></span>
+            </div>
+            <div class="fila-contador">
+                <span>Estenosis: <span id="contador-estenosis">0</span>%</span>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Escenarios</h2>
+
+            <div class="fila-toggle">
+                <label class="toggle">
+                    <input type="checkbox" id="escenario-saludable">
+                    <span class="toggle-pista"></span>
+                </label>
+                <label for="escenario-saludable">Persona saludable</label>
+            </div>
+
+            <div class="fila-toggle">
+                <label class="toggle">
+                    <input type="checkbox" id="escenario-ldl-alto">
+                    <span class="toggle-pista"></span>
+                </label>
+                <label for="escenario-ldl-alto">LDL alto</label>
+            </div>
+
+            <div class="fila-toggle">
+                <label class="toggle">
+                    <input type="checkbox" id="escenario-hipertension">
+                    <span class="toggle-pista"></span>
+                </label>
+                <label for="escenario-hipertension">Hipertensión arterial</label>
+            </div>
+
+            <div class="fila-toggle">
+                <label class="toggle">
+                    <input type="checkbox" id="escenario-fumador">
+                    <span class="toggle-pista"></span>
+                </label>
+                <label for="escenario-fumador">Fumador activo</label>
+            </div>
+        </section>
     </div>
 
     <script src="Segmento.js"></script>
