@@ -70,6 +70,29 @@ class Macrofago extends Agent2D {
         }
     }
 
+    puedeCruzarEndotelio() {
+        if (!this.objetivo || !this.arteria) {
+            return false;
+        }
+        const a = this.arteria;
+        if (a.dentroDelLumen(this.objetivo.pos)) {
+            return false;
+        }
+        let endotelio = a.endotelioSuperior;
+        if (a.paredMasCercana(this.objetivo.pos) === "inferior") {
+            endotelio = a.endotelioInferior;
+        }
+        const indice = endotelio.indiceEn(this.pos.x - a.xInicio);
+        return endotelio.segmentos[indice].isDamage();
+    }
+
+    limitarAlLumen(arteria) {
+        if (this.puedeCruzarEndotelio()) {
+            return;
+        }
+        super.limitarAlLumen(arteria);
+    }
+
     seguirFlujo(arteria, velocidadFlujo) {
         if (!this.objetivo) {
             super.seguirFlujo(arteria, velocidadFlujo);

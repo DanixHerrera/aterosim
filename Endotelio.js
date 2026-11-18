@@ -159,4 +159,22 @@ class Endotelio {
 
         return masCercano;
     }
+
+    segmentoEn(x) {
+        let xLocal = x - this.arteria.xInicio;
+        let paso = this.anchoSegmento + this.separacionSegmentos;
+        let indice = Math.floor(xLocal / paso);
+
+        if (indice < 0 || indice >= this.segmentos.length) {
+            return null;
+        }
+
+        let segmento = this.segmentos[indice];
+
+        if (xLocal > indice * paso + this.anchoSegmento) {
+            return null;
+        }
+
+        return segmento;
+    }
 }
