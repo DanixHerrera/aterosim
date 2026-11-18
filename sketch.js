@@ -88,7 +88,7 @@ function crearSimulacion() {
 }
 
 function draw() {
-    background("#EAF2F5");
+    background("#620202");
 
     arteria.display();
 
