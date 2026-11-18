@@ -10,22 +10,22 @@ let segmentosGenerados = null;
 
 let configuracionEscenarios = {
     "escenario-saludable": {
-        cantidad: 40,
+        cantidad: 4,
         seed: 3101,
         macrofagos: 25
     },
     "escenario-ldl-alto": {
-        cantidad: 40,
+        cantidad: 10,
         seed: 1901,
         macrofagos: 45
     },
     "escenario-hipertension": {
-        cantidad: 40,
+        cantidad: 16,
         seed: 1601,
         macrofagos: 40
     },
     "escenario-fumador": {
-        cantidad: 40,
+        cantidad: 14,
         seed: 1001,
         macrofagos: 50
     }
@@ -308,8 +308,19 @@ function configuracionArteriaActual() {
         macrofagos = macrofagos + 15;
     }
 
+    let segmentosUnicos = [];
+    let usados = new Set();
+
+    for (let i = 0; i < indices.length; i++) {
+        let clave = indices[i].pared + ":" + indices[i].indice;
+        if (!usados.has(clave)) {
+            usados.add(clave);
+            segmentosUnicos.push(indices[i]);
+        }
+    }
+
     return {
-        indicesDanados: indices,
+        indicesDanados: segmentosUnicos,
         macrofagos: macrofagos
     };
 }
