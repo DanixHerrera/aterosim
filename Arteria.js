@@ -39,6 +39,7 @@ class Arteria {
             this.perlinSeed,
             this
         );
+        this.endotelioInferior.direccionLumen = -1;
         this.intima = new Intima(
             this.ancho,
             this.perlinAmplitudIntima,
@@ -120,14 +121,81 @@ class Arteria {
         return total;
     }
 
+    paredMasCercana(pos) {
+        let xLocal = pos.x - this.xInicio;
+        let top = this.yLumenSuperior + this.endotelioSuperior.offsetEn(xLocal);
+        let bottom = this.yLumenInferior + this.endotelioInferior.offsetEn(xLocal);
+        if (pos.y < (top + bottom) / 2) {
+            return "superior";
+        }
+        return "inferior";
+    }
+
+    posicionEnIntima(indice, lado, n) {
+        let endotelio = this.endotelioSuperior;
+        if (lado === "inferior") {
+            endotelio = this.endotelioInferior;
+        }
+        let paso = endotelio.anchoSegmento + endotelio.separacionSegmentos;
+        let xLocal = indice * paso + endotelio.anchoSegmento / 2;
+        xLocal = xLocal + ((n % 3) - 1) * 6;
+
+        let capa = Math.floor(n / 3);
+        let offset = this.intima.offsetEn(xLocal);
+        let y;
+        if (lado === "superior") {
+            y = this.yLumenSuperior - this.intima.distanciaLumen + offset + capa * 6;
+        } else {
+            y = this.yLumenInferior + this.intima.distanciaLumen + offset - capa * 6;
+        }
+        return createVector(this.xInicio + xLocal, y);
+    }
+
+    actualizarPlaca() {
+        this.endotelioSuperior.actualizarPlaca();
+        this.endotelioInferior.actualizarPlaca();
+    }
+
+    estenosisSegmento(indice) {
+        let paso = this.endotelioSuperior.anchoSegmento + this.endotelioSuperior.separacionSegmentos;
+        let xLocal = indice * paso + this.endotelioSuperior.anchoSegmento / 2;
+
+        let top = this.yLumenSuperior + this.altoEndotelio + this.endotelioSuperior.offsetEn(xLocal);
+        let bottom = this.yLumenInferior - this.altoEndotelio + this.endotelioInferior.offsetEn(xLocal);
+        let altoLibre = bottom - top;
+
+        let placa = this.endotelioSuperior.placaEn(xLocal) + this.endotelioInferior.placaEn(xLocal);
+
+        return min(100, placa / altoLibre * 100);
+    }
+
+    estenosisMaxima() {
+        let maxima = 0;
+        for (let i = 0; i < this.endotelioSuperior.segmentos.length; i++) {
+            maxima = max(maxima, this.estenosisSegmento(i));
+        }
+        return maxima;
+    }
+
+    estenosisPromedio() {
+        let cantidad = this.endotelioSuperior.segmentos.length;
+        let total = 0;
+        for (let i = 0; i < cantidad; i++) {
+            total = total + this.estenosisSegmento(i);
+        }
+        return total / cantidad;
+    }
+
     dentroDelLumen(pos) {
         if (pos.x >= this.xInicio && pos.x <= this.xInicio + this.ancho) {
             let xLocal = pos.x - this.xInicio;
             let offsetSuperior = this.endotelioSuperior.offsetEn(xLocal);
             let offsetInferior = this.endotelioInferior.offsetEn(xLocal);
+            let placaSuperior = this.endotelioSuperior.placaEn(xLocal);
+            let placaInferior = this.endotelioInferior.placaEn(xLocal);
 
-            let top = this.yLumenSuperior + this.altoEndotelio + offsetSuperior;
-            let bottom = this.yLumenInferior - this.altoEndotelio + offsetInferior;
+            let top = this.yLumenSuperior + this.altoEndotelio + offsetSuperior + placaSuperior;
+            let bottom = this.yLumenInferior - this.altoEndotelio + offsetInferior - placaInferior;
 
             if (pos.y >= top && pos.y <= bottom) {
                 return true;

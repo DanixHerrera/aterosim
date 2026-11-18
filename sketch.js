@@ -66,6 +66,7 @@ function actualizarContadores() {
     document.getElementById("contador-oxidantes").textContent = oxidantes;
     document.getElementById("contador-hdl").textContent = hdl;
     document.getElementById("contador-ldl-oxidados").textContent = oxidados;
+    document.getElementById("contador-estenosis").textContent = arteria.estenosisMaxima().toFixed(1);
 }
 
 function crearSimulacion() {
@@ -78,18 +79,17 @@ function crearSimulacion() {
         hdl: 12,
         oxidantes: 10,
         macrofagos: 20,
-        celulasEspumosas: 2,
+        celulasEspumosas: 0,
         tabaquismo: nivelTabaquismo
     });
 
     sistema.initialize();
-    
-    
 }
 
 function draw() {
     background("#620202");
 
+    arteria.actualizarPlaca();
     arteria.display();
 
     sistema.update();

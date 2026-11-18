@@ -52,6 +52,13 @@ class Intima {
         }
     }
 
+    offsetEn(x) {
+        let paso = this.anchoTotal / this.cantidadPuntos;
+        let i = constrain(Math.floor(x / paso), 0, this.cantidadPuntos - 1);
+        let t = constrain((x - i * paso) / paso, 0, 1);
+        return lerp(this.offsets[i], this.offsets[i + 1], t);
+    }
+
     display(x, y, ancho) {
         let paso = ancho / this.cantidadPuntos;
 

@@ -26,11 +26,39 @@ class Endotelio {
         this.offsetsIzquierda = [];
         this.offsetsDerecha = [];
 
+        this.direccionLumen = 1;
+        this.alturaPorCelula = 6;
+        this.placaIzquierda = [];
+        this.placaDerecha = [];
+
         for (let i = 0; i < this.cantidadSegmentos; i++) {
             this.segmentos.push(new Segmento(0, this.anchoSegmento, "sano"));
         }
 
         this.generarCurvas();
+        this.actualizarPlaca();
+    }
+
+    actualizarPlaca() {
+        let cantidad = this.segmentos.length;
+
+        for (let i = 0; i < cantidad; i++) {
+            let celulas = this.segmentos[i].celulasEspumosas;
+            let celulasIzquierda = i > 0 ? this.segmentos[i - 1].celulasEspumosas : 0;
+            let celulasDerecha = i < cantidad - 1 ? this.segmentos[i + 1].celulasEspumosas : 0;
+            this.segmentos[i].placaAltura = this.alturaPorCelula * (celulas + 0.5 * (celulasIzquierda + celulasDerecha));
+        }
+
+        this.placaIzquierda = [];
+        this.placaDerecha = [];
+
+        for (let i = 0; i < cantidad; i++) {
+            let placa = this.segmentos[i].placaAltura;
+            let placaAnterior = i > 0 ? this.segmentos[i - 1].placaAltura : placa;
+            let placaSiguiente = i < cantidad - 1 ? this.segmentos[i + 1].placaAltura : placa;
+            this.placaIzquierda.push((placaAnterior + placa) / 2);
+            this.placaDerecha.push((placa + placaSiguiente) / 2);
+        }
     }
 
     generarCurvas() {
@@ -58,17 +86,25 @@ class Endotelio {
     }
 
     offsetEn(x) {
+        return this.interpolar(x, this.offsetsIzquierda, this.offsetsDerecha);
+    }
+
+    placaEn(x) {
+        return this.interpolar(x, this.placaIzquierda, this.placaDerecha);
+    }
+
+    interpolar(x, valoresIzquierda, valoresDerecha) {
         let paso = this.anchoSegmento + this.separacionSegmentos;
         let ultimo = this.segmentos.length - 1;
 
         if (x <= 0) {
-            return this.offsetsIzquierda[0];
+            return valoresIzquierda[0];
         }
 
         let xFinal = ultimo * paso + this.anchoSegmento;
 
         if (x >= xFinal) {
-            return this.offsetsDerecha[ultimo];
+            return valoresDerecha[ultimo];
         }
 
         let indice = Math.floor(x / paso);
@@ -77,18 +113,32 @@ class Endotelio {
 
         if (x <= finSegmento) {
             let t = (x - inicioSegmento) / this.anchoSegmento;
-            return lerp(this.offsetsIzquierda[indice], this.offsetsDerecha[indice], t);
+            return lerp(valoresIzquierda[indice], valoresDerecha[indice], t);
         }
 
         let t = (x - finSegmento) / this.separacionSegmentos;
-        return lerp(this.offsetsDerecha[indice], this.offsetsIzquierda[indice + 1], t);
+        return lerp(valoresDerecha[indice], valoresIzquierda[indice + 1], t);
+    }
+
+    indiceEn(x) {
+        let paso = this.anchoSegmento + this.separacionSegmentos;
+        let indice = Math.floor(x / paso);
+        return constrain(indice, 0, this.segmentos.length - 1);
     }
 
     display(x, y, alto) {
         for (let i = 0; i < this.segmentos.length; i++) {
             this.segmentos[i].x = x + i * (this.anchoSegmento + this.separacionSegmentos);
 
-            this.segmentos[i].display( y, alto, this.offsetsIzquierda[i],this.offsetsDerecha[i]);
+            this.segmentos[i].display(
+                y,
+                alto,
+                this.offsetsIzquierda[i],
+                this.offsetsDerecha[i],
+                this.placaIzquierda[i],
+                this.placaDerecha[i],
+                this.direccionLumen
+            );
         }
     }
 
