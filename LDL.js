@@ -8,7 +8,6 @@ class LDL extends Agent2D {
         this.size = 7;
         this.r = this.size;
         this.state = estado;
-        this.grasaRegistrada = false;
     }
 
     update(velocidadFlujo) {

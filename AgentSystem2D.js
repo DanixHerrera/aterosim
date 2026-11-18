@@ -436,7 +436,7 @@ class AgentSystem2D {
                 const clave = lado + ":" + indice;
                 const cantidad = ldlsVisibles.get(clave) ?? 0;
 
-                if (cantidad >= 3) {
+                if (cantidad >= 4) {
                     continue;
                 }
 
@@ -607,11 +607,6 @@ class AgentSystem2D {
 
                 ldl.pos.y = a.yLumenSuperior - a.intima.distanciaLumen
                     + this.getIntimaOffsetAt(xLocal);
-                if (!ldl.grasaRegistrada) {
-                    segmentoSuperior.acumularGrasa(1.5);
-                    ldl.grasaRegistrada = true;
-                }
-
                 infiltrado = true;
             } else if (cercaInferior && segmentoInferior && segmentoInferior.isDamage()) {
                 if (random(1) >= probabilidad) {
@@ -621,11 +616,6 @@ class AgentSystem2D {
 
                 ldl.pos.y = a.yLumenInferior + a.intima.distanciaLumen
                     + this.getIntimaOffsetAt(xLocal);
-                if (!ldl.grasaRegistrada) {
-                    segmentoInferior.acumularGrasa(1.5);
-                    ldl.grasaRegistrada = true;
-                }
-
                 infiltrado = true;
             }
 

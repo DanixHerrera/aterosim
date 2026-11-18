@@ -17,8 +17,6 @@ class Macrofago extends Agent2D {
         this.ldlAbsorbidos = 0;
         this.margenAbsorcion = 4;
         this.inIntima = false;
-        this.regionAsignada = floor(random(0, 4));
-        this.esPatrullero = random(1) < 0.1;
         this.tiempoSinObjetivo = 0;
 
         this.state = "normal";
@@ -42,16 +40,6 @@ class Macrofago extends Agent2D {
         this.inIntima = false;
         this.tiempoSinObjetivo = 0;
 
-        if (this.arteria) {
-            const lado = this.arteria.paredMasCercana(this.pos);
-            let endotelio = lado === "inferior"
-                ? this.arteria.endotelioInferior
-                : this.arteria.endotelioSuperior;
-            const xLocal = constrain(this.pos.x - this.arteria.xInicio, 0, this.arteria.ancho);
-            const indice = endotelio.indiceEn(xLocal);
-            endotelio.segmentos[indice].acumularGrasa(0.8);
-        }
-
         return true;
     }
 
@@ -71,10 +59,6 @@ class Macrofago extends Agent2D {
 
         let objetivo = null;
         let distanciaMinima = this.radioDeteccion;
-        let objetivoAsignado = null;
-        let distanciaAsignada = Infinity;
-        let objetivoRegional = null;
-        let distanciaRegional = Infinity;
 
         for (const ldl of ldls) {
             if (ldl.state !== "oxidado") {
@@ -91,37 +75,11 @@ class Macrofago extends Agent2D {
                 distanciaMinima = distancia;
                 objetivo = ldl;
             }
-
-            const regionLDL = this.arteria
-                ? floor(constrain(
-                    (ldl.pos.x - this.arteria.xInicio) / (this.arteria.ancho / 4),
-                    0,
-                    3
-                ))
-                : -1;
-
-            if (regionLDL === this.regionAsignada
-                && distancia < distanciaAsignada) {
-                distanciaAsignada = distancia;
-                objetivoAsignado = ldl;
-            }
-
-            if (this.esPatrullero && distancia < distanciaRegional) {
-                distanciaRegional = distancia;
-                objetivoRegional = ldl;
-            }
-        }
-
-        if (objetivoAsignado) {
-            objetivo = objetivoAsignado;
-        } else if (objetivoRegional) {
-            objetivo = objetivoRegional;
         }
 
         if (!objetivo) {
             this.tiempoSinObjetivo++;
             if (this.tiempoSinObjetivo >= 180) {
-                this.regionAsignada = (this.regionAsignada + 1) % 4;
                 this.tiempoSinObjetivo = 0;
             }
         } else {
