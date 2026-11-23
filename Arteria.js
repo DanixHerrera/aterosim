@@ -4,7 +4,7 @@ class Arteria {
         this.y = y;
         this.ancho = width;
         this.alto = height;
-        this.diametroMinimoAgente = 5; //Actualizar al diámetro del agente más pequeño
+        this.diametroMinimoAgente = 10; 
 
         this.altoLumen = 150;
         this.altoEndotelio = 8;
