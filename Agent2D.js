@@ -65,6 +65,9 @@ class Agent2D {
         }
         this.vel.limit(this.maxSpeed * factorVelocidad);
         this.pos.add(this.vel);
+        if (this.arteria) {
+            this.limitarAvancePorPlaca(this.arteria, this.lastPos.x);
+        }
         this.acc.mult(0);
         this.borders();
         this.mass -= this.massLoss;
@@ -217,20 +220,73 @@ class Agent2D {
         return { top: top, bottom: bottom };
     }
 
+    limitarAvancePorPlaca(arteria, xAnterior = this.lastPos.x) {
+        this.bloqueadoPorPlaca = false;
+        if (this.inIntima || this.state === "infiltrado" || this.state === "oxidado") {
+            return;
+        }
+
+        const radio = this.size;
+        const inicio = Math.max(xAnterior, arteria.xInicio);
+        const final = Math.min(this.pos.x + radio, arteria.xInicio + arteria.ancho);
+
+        if (final <= inicio) return;
+
+        const paso = 1;
+        for (let x = inicio; x <= final; x += paso) {
+            const xLocal = constrain(x - arteria.xInicio, 0, arteria.ancho);
+            const paredSuperior = arteria.yLumenSuperior + arteria.altoEndotelio
+                + arteria.endotelioSuperior.offsetEn(xLocal)
+                + arteria.endotelioSuperior.placaEn(xLocal);
+            const paredInferior = arteria.yLumenInferior - arteria.altoEndotelio
+                + arteria.endotelioInferior.offsetEn(xLocal)
+                - arteria.endotelioInferior.placaEn(xLocal);
+            const espacioDisponible = paredInferior - paredSuperior;
+
+            if (espacioDisponible < radio * 2) {
+                const limiteX = x - radio - 0.5;
+                if (this.pos.x > limiteX) {
+                    this.pos.x = limiteX;
+                    if (this.vel.x > 0) this.vel.x = 0;
+                }
+                this.bloqueadoPorPlaca = true;
+                return;
+            }
+        }
+    }
+
     seguirFlujo(arteria, velocidadFlujo) {
-        let xLocal = this.pos.x - arteria.xInicio;
+        let xLocal = constrain(this.pos.x - arteria.xInicio, 0, arteria.ancho);
         let offsetSuperior = arteria.endotelioSuperior.offsetEn(xLocal);
         let offsetInferior = arteria.endotelioInferior.offsetEn(xLocal);
-        let paredSuperior = arteria.yLumenSuperior + arteria.altoEndotelio + offsetSuperior;
-        let paredInferior = arteria.yLumenInferior - arteria.altoEndotelio + offsetInferior;
+        const placaSuperior = arteria.endotelioSuperior.placaEn(xLocal);
+        const placaInferior = arteria.endotelioInferior.placaEn(xLocal);
+        let paredSuperior = arteria.yLumenSuperior + arteria.altoEndotelio + offsetSuperior + placaSuperior;
+        let paredInferior = arteria.yLumenInferior - arteria.altoEndotelio + offsetInferior  - placaInferior;
         let centroY = (paredSuperior + paredInferior) / 2;
-        let radio = (paredInferior - paredSuperior) / 2;
+        let radio = Math.max(1, (paredInferior - paredSuperior) / 2);
         let d = (this.pos.y - centroY) / radio;
+        const distanciaAnticipacion = Math.max(this.size * 2.5, this.vel.x * 4);
+        const xFuturo = constrain(this.pos.x + distanciaAnticipacion - arteria.xInicio, 0, arteria.ancho);
+        const huecoFuturo = arteria.yLumenInferior - arteria.altoEndotelio
+            + arteria.endotelioInferior.offsetEn(xFuturo)
+            - arteria.endotelioInferior.placaEn(xFuturo)
+            - (arteria.yLumenSuperior + arteria.altoEndotelio
+                + arteria.endotelioSuperior.offsetEn(xFuturo)
+                + arteria.endotelioSuperior.placaEn(xFuturo));
+
+        const espacioNecesario = this.size * 2;
+        const factorPaso = constrain((huecoFuturo - espacioNecesario) / Math.max(espacioNecesario, 1), 0, 1);        
         let factorPresion = arteria.factorPresion ?? 1;
-        let desired = createVector(velocidadFlujo * factorPresion * (1 - d * d), 0);
+        const desired = createVector(velocidadFlujo * factorPresion * Math.max(0, 1 - d * d) * factorPaso, 0);        
         let steering = p5.Vector.sub(desired, this.vel);
         steering.mult(this.coefflujo);
         this.applyGravity(steering);
+
+        if (factorPaso < 1) {
+            this.vel.x *= lerp(0.78, 0.94, factorPaso);
+        }
+        this.vel.x = Math.max(0, this.vel.x);
 
         let empuje = map(noise(this.ruidoT), 0, 1, -this.turbulencia, this.turbulencia);
         this.ruidoT += 0.01;

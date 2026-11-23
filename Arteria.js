@@ -4,6 +4,7 @@ class Arteria {
         this.y = y;
         this.ancho = width;
         this.alto = height;
+        this.diametroMinimoAgente = 5; //Actualizar al diámetro del agente más pequeño
 
         this.altoLumen = 150;
         this.altoEndotelio = 8;
@@ -273,6 +274,11 @@ class Arteria {
         let altoLibre = bottom - top;
 
         let placa = this.endotelioSuperior.placaEn(xLocal) + this.endotelioInferior.placaEn(xLocal);
+        let apertura = altoLibre - placa;
+
+        if (apertura < this.diametroMinimoAgente) {
+            return 100;
+        }
 
         return min(100, placa / altoLibre * 100);
     }
