@@ -359,7 +359,10 @@ class AgentSystem2D {
         const celula = new CelulaEspumosa(pos.x, pos.y);
         celula.arteria = a;
         celula.segmento = segmento;
-        segmento.celulasEspumosas++;
+
+        if (!a.segmentoSaturado(indice)) {
+            segmento.celulasEspumosas++;
+        }
 
         return celula;
     }
@@ -691,7 +694,8 @@ class AgentSystem2D {
 
             const exceso = ldlsOxidados.length - 100;
             const porcentaje = 0.40;
-            const objetivo = Math.min(
+            const saturada = this.arteria.segmentoSaturado(zona.indice);
+            const objetivo = saturada ? 0 : Math.min(
                 zona.ldls.length,
                 Math.ceil(exceso * porcentaje)
             );

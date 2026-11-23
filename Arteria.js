@@ -51,6 +51,10 @@ class Arteria {
         this.configurarDanoInicial(configuracion);
 
         this.c = color("#FFC1C2");
+
+        this.limitesPlaca = null;
+        this.espacioPlaca = [];
+        this.actualizarPlaca();
     }
 
     configurarDanoInicial(configuracion) {
@@ -168,8 +172,96 @@ class Arteria {
     }
 
     actualizarPlaca() {
-        this.endotelioSuperior.actualizarPlaca();
-        this.endotelioInferior.actualizarPlaca();
+        this.endotelioSuperior.calcularPlacaDeseada();
+        this.endotelioInferior.calcularPlacaDeseada();
+
+        this.resolverContactoPlaca();
+
+        this.endotelioSuperior.actualizarPerfilPlaca();
+        this.endotelioInferior.actualizarPerfilPlaca();
+    }
+
+    huecoSinPlaca(offsetSuperior, offsetInferior) {
+        let superior = this.yLumenSuperior + this.altoEndotelio + offsetSuperior;
+        let inferior = this.yLumenInferior - this.altoEndotelio + offsetInferior;
+        return inferior - superior;
+    }
+
+    limitePlacaSegmento(i) {
+        let sup = this.endotelioSuperior;
+        let inf = this.endotelioInferior;
+        let ultimo = sup.segmentos.length - 1;
+
+        let limite = Math.min(
+            this.huecoSinPlaca(sup.offsetsIzquierda[i], inf.offsetsIzquierda[i]),
+            this.huecoSinPlaca(sup.offsetsDerecha[i], inf.offsetsDerecha[i])
+        );
+
+        if (i > 0) {
+            limite = Math.min(limite,
+                this.huecoSinPlaca(sup.offsetsDerecha[i - 1], inf.offsetsDerecha[i - 1]));
+        }
+        if (i < ultimo) {
+            limite = Math.min(limite,
+                this.huecoSinPlaca(sup.offsetsIzquierda[i + 1], inf.offsetsIzquierda[i + 1]));
+        }
+
+        return Math.max(0, limite);
+    }
+
+    resolverContactoPlaca() {
+        let sup = this.endotelioSuperior;
+        let inf = this.endotelioInferior;
+        let cantidad = sup.segmentos.length;
+
+        if (!this.limitesPlaca || this.limitesPlaca.length !== cantidad) {
+            this.limitesPlaca = [];
+            for (let i = 0; i < cantidad; i++) {
+                this.limitesPlaca.push(this.limitePlacaSegmento(i));
+            }
+            this.espacioPlaca = new Array(cantidad).fill(Infinity);
+        }
+
+        for (let i = 0; i < cantidad; i++) {
+            let segSup = sup.segmentos[i];
+            let segInf = inf.segmentos[i];
+            let limite = this.limitesPlaca[i];
+
+            let alturaSup = Math.min(segSup.placaAltura, segSup.placaDeseada);
+            let alturaInf = Math.min(segInf.placaAltura, segInf.placaDeseada);
+
+            let total = alturaSup + alturaInf;
+            if (total > limite && total > 0) {
+                let f = limite / total;
+                alturaSup *= f;
+                alturaInf *= f;
+                total = limite;
+            }
+
+            let quiereSup = Math.max(0, segSup.placaDeseada - alturaSup);
+            let quiereInf = Math.max(0, segInf.placaDeseada - alturaInf);
+            let quiere = quiereSup + quiereInf;
+
+            let libre = Math.max(0, limite - total);
+
+            if (quiere <= libre) {
+                alturaSup += quiereSup;
+                alturaInf += quiereInf;
+            } else if (quiere > 0) {
+                let f = libre / quiere;
+                alturaSup += quiereSup * f;
+                alturaInf += quiereInf * f;
+            }
+
+            segSup.placaAltura = alturaSup;
+            segInf.placaAltura = alturaInf;
+            this.espacioPlaca[i] = Math.max(0, limite - (alturaSup + alturaInf));
+        }
+    }
+
+    segmentoSaturado(indice) {
+        let espacio = this.espacioPlaca[indice];
+        return espacio !== undefined && espacio < 0.05;
     }
 
     estenosisSegmento(indice) {

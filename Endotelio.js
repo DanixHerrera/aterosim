@@ -39,7 +39,7 @@ class Endotelio {
         this.actualizarPlaca();
     }
 
-    actualizarPlaca() {
+    calcularPlacaDeseada() {
         let cantidad = this.segmentos.length;
 
         for (let i = 0; i < cantidad; i++) {
@@ -51,8 +51,22 @@ class Endotelio {
                 celulas + 0.5 * (celulasIzquierda + celulasDerecha)
             );
 
-            this.segmentos[i].placaAltura = placaCelular + grasa;
+            this.segmentos[i].placaDeseada = placaCelular + grasa;
         }
+    }
+
+    actualizarPlaca() {
+        this.calcularPlacaDeseada();
+
+        for (let i = 0; i < this.segmentos.length; i++) {
+            this.segmentos[i].placaAltura = this.segmentos[i].placaDeseada;
+        }
+
+        this.actualizarPerfilPlaca();
+    }
+
+    actualizarPerfilPlaca() {
+        let cantidad = this.segmentos.length;
 
         this.placaIzquierda = [];
         this.placaDerecha = [];
