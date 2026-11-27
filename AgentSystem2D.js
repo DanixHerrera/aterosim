@@ -4,7 +4,7 @@ class AgentSystem2D {
         this.arteria = arteria;
         this.agents = [];
         this.velocidadFlujo = config.velocidadFlujo ?? 1.5;
-        this.damp = 0.4;
+        this.damp = 0.15;
 
         this.config = {
             globulosRojos: config.globulosRojos ?? 12,
@@ -359,7 +359,10 @@ class AgentSystem2D {
         const celula = new CelulaEspumosa(pos.x, pos.y);
         celula.arteria = a;
         celula.segmento = segmento;
-        segmento.celulasEspumosas++;
+
+        if (!a.segmentoSaturado(indice)) {
+            segmento.celulasEspumosas++;
+        }
 
         return celula;
     }
@@ -405,6 +408,7 @@ class AgentSystem2D {
                 continue;
             }
 
+            agent.limitarAvancePorPlaca(this.arteria, agent.lastPos.x);
             agent.limitarAlLumen(this.arteria);
         }
     }
@@ -499,12 +503,14 @@ class AgentSystem2D {
             if (mag3 === 0)
                 return;
             const mag4 = vel3.dot(dif);
-            if (mag4 > 0)
-                return;
-            const impulso = -(1 + this.damp) * mag4 / mag3;
-            let vel4 = p5.Vector.mult(dif, impulso);
-            a1.vel.add(p5.Vector.mult(vel4, mag1));
-            a2.vel.sub(p5.Vector.mult(vel4, mag2));
+            if (mag4 <= 0) {
+                const impulso = -(1 + this.damp) * mag4 / mag3;
+                let vel4 = p5.Vector.mult(dif, impulso);
+                a1.vel.add(p5.Vector.mult(vel4, mag1));
+                a2.vel.sub(p5.Vector.mult(vel4, mag2));
+            }
+            if (!a1.inIntima) a1.vel.x = Math.max(0, a1.vel.x);
+            if (!a2.inIntima) a2.vel.x = Math.max(0, a2.vel.x);
         }
     }
 
@@ -691,7 +697,8 @@ class AgentSystem2D {
 
             const exceso = ldlsOxidados.length - 100;
             const porcentaje = 0.40;
-            const objetivo = Math.min(
+            const saturada = this.arteria.segmentoSaturado(zona.indice);
+            const objetivo = saturada ? 0 : Math.min(
                 zona.ldls.length,
                 Math.ceil(exceso * porcentaje)
             );

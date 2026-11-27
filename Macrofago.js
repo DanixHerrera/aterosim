@@ -125,7 +125,7 @@ class Macrofago extends Agent2D {
             }
         }
         super.update(velocidadFlujo);
-        if (!this.inIntima && this.vel.x < 0.8) {
+        if (!this.inIntima && !this.bloqueadoPorPlaca && this.vel.x < 0.8) {
             this.vel.x = 0.8;
         }
         if (this.objetivo) {

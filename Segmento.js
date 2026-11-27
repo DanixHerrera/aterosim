@@ -5,6 +5,7 @@ class Segmento {
         this.desgaste = 0;
         this.celulasEspumosas = 0;
         this.placaAltura = 0;
+        this.placaDeseada = 0;
         this.grasaAcumulada = 0;
 
         if (estado === "dañado") {
