@@ -8,6 +8,14 @@ let nivelHDL = 60;
 let escenarioActivo = "escenario-saludable";
 let segmentosGenerados = null;
 
+let eventoFinalActivo = false;
+let estenosisCompleta = false;
+let tiempoEstenosisCompleta = 0;
+let simulacionFinalizada = false;
+
+let botonEventoFinal;
+let videoFinal;
+
 let configuracionEscenarios = {
     "escenario-saludable": {
         cantidad: 4,
@@ -36,6 +44,32 @@ function setup() {
 
     crearSimulacion();
     configurarControles();
+    crearControlFinal();
+}
+
+function crearControlFinal() {
+
+    botonEventoFinal = createButton("Activar evento final");
+
+    botonEventoFinal.position(windowWidth - 230, windowHeight - 55);
+
+    botonEventoFinal.style("z-index", "1000");
+    botonEventoFinal.style("background-color", "#252525");
+    botonEventoFinal.style("color", "white");
+    botonEventoFinal.style("border", "1px solid white");
+    botonEventoFinal.style("border-radius", "8px");
+    botonEventoFinal.style("padding", "10px 15px");
+    botonEventoFinal.style("cursor", "pointer");
+    botonEventoFinal.style("font-size", "13px");
+
+    botonEventoFinal.mousePressed(() => {
+
+        eventoFinalActivo = true;
+        botonEventoFinal.html("Esperando estenosis del 100 %...");
+    });
+
+    videoFinal = createVideo("YOU DIED (HD).mp4");
+    videoFinal.hide();
 }
 
 function configurarControles() {
@@ -325,6 +359,52 @@ function configuracionArteriaActual() {
     };
 }
 
+
+function dibujarLeyenda() {
+    push();
+
+    let x = width - 215;
+    let y = 20;
+
+    noStroke();
+    fill(20, 20, 25, 220);
+    rect(x, y, 195, 205, 12);
+
+    fill(255);
+    textSize(15);
+    textStyle(BOLD);
+    textAlign(LEFT, CENTER);
+    text("Leyenda de agentes", x + 12, y + 17);
+
+    textStyle(NORMAL);
+    textSize(12);
+
+    let elementos = [
+        { nombre: "Glóbulo rojo", color: [204, 43, 62] },
+        { nombre: "LDL normal", color: [190, 125, 30] },
+        { nombre: "LDL oxidado", color: [135, 55, 35] },
+        { nombre: "HDL", color: [65, 165, 220] },
+        { nombre: "Oxidante", color: [125, 80, 190] },
+        { nombre: "Macrófago", color: [125, 132, 143] },
+        { nombre: "Célula espumosa", color: [225, 170, 95] }
+    ];
+
+    for (let i = 0; i < elementos.length; i++) {
+        let posY = y + 43 + i * 22;
+
+        fill(...elementos[i].color);
+        noStroke();
+        circle(x + 23, posY, 12);
+
+        fill(255);
+        textAlign(LEFT, CENTER);
+        text(elementos[i].nombre, x + 40, posY);
+    }
+
+    pop();
+}
+
+
 function crearSimulacion() {
     let configuracion = configuracionArteriaActual();
     arteria = new Arteria(width / 2, height / 2, configuracion);
@@ -346,16 +426,63 @@ function crearSimulacion() {
     sistema.initialize();
 }
 
+
+
+function finalizarSimulacion() {
+
+    simulacionFinalizada = true;
+
+    console.log("Simulación finalizada.");
+
+    // Mostrar el video sobre la simulación
+    videoFinal.show();
+
+    videoFinal.position(0, 0);
+    videoFinal.size(windowWidth, windowHeight);
+
+    videoFinal.volume(1);
+    videoFinal.play();
+}
+
+
 function draw() {
+
+    if (simulacionFinalizada) {
+        return;
+    }
+
     background("#620202");
 
-    arteria.actualizarPlaca();
-    arteria.display();
+    if (!estenosisCompleta) {
 
-    sistema.update();
+        arteria.actualizarPlaca();
+        sistema.update();
+
+        if (
+            eventoFinalActivo &&
+            arteria.estenosisMaxima() >= 100
+        ) {
+            estenosisCompleta = true;
+            tiempoEstenosisCompleta = millis();
+        }
+    }
+
+    arteria.display();
     sistema.display();
+
     actualizarContadores();
+
+    dibujarLeyenda();
+
+    if (
+        estenosisCompleta &&
+        millis() - tiempoEstenosisCompleta >= 5000
+    ) {
+        finalizarSimulacion();
+    }
 }
+
+
 
 function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
